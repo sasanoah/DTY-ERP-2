@@ -15,13 +15,16 @@ export async function POST(req: Request) {
       if (!rfq) throw Object.assign(new Error('RFQ غير موجود'), {status: 404});
       if (rfq.status !== 'SENT') throw Object.assign(new Error('لا يمكن تعديل عرض بعد تحويل RFQ'), {status: 409});
       const supplier = await tx.supplier.findFirst({
-        where: {id: data.supplierId, companyId: session.companyId},
+        where: {id: data.supplierId, companyId: session.companyId, qualityStatus: 'APPROVED'},
       });
-      if (!supplier) throw Object.assign(new Error('المورد غير موجود'), {status: 404});
+      if (!supplier) throw Object.assign(new Error('المورد غير موجود أو غير معتمد'), {status: 404});
       const validLines = new Set(rfq.lines.map((line) => line.id));
-      if (data.lines.some((line) => !validLines.has(line.rfqLineId))) {
-        throw Object.assign(new Error('سطر RFQ غير صحيح'), {status: 400});
+      const submittedLines = new Set(data.lines.map((line) => line.rfqLineId));
+      if (submittedLines.size !== data.lines.length || submittedLines.size !== validLines.size || [...validLines].some((id) => !submittedLines.has(id))) {
+        throw Object.assign(new Error('يجب تسعير كل سطر في RFQ مرة واحدة بدون تكرار'), {status: 400});
       }
+      const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+      if (data.validUntil && data.validUntil.getTime() < today.getTime()) throw Object.assign(new Error('تاريخ صلاحية العرض منتهي'), {status: 400});
 
       // A no-op conditional update takes the same row lock used by conversion.
       const writable = await tx.rfq.updateMany({

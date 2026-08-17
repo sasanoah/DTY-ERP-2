@@ -63,11 +63,15 @@ test.describe('commercial transaction integrity', () => {
     };
     expect(context.suppliers[0]).toBeTruthy();
     expect(context.materials[0]).toBeTruthy();
+    expect(context.materials[1]).toBeTruthy();
     const rfqResponse = await page.request.post('/api/procurement/rfq', {
       data: {
         dueDate: new Date(Date.now() + 2 * 86_400_000).toISOString(),
         notes: `E2E-RFQ-CLAIM-${Date.now()}`,
-        lines: [{materialId: context.materials[0].id, qtyKg: 100}],
+        lines: [
+          {materialId: context.materials[0].id, qtyKg: 100},
+          {materialId: context.materials[1].id, qtyKg: 200},
+        ],
       },
     });
     expect(rfqResponse.status()).toBe(201);
@@ -78,8 +82,19 @@ test.describe('commercial transaction integrity', () => {
       currency: 'USD',
       exchangeRate: 50,
       paymentTermsDays: 30,
-      lines: [{rfqLineId: rfq.rfq.lines[0].id, unitPrice: 1, freightEgpKg: 0, leadTimeDays: 7}],
+      lines: [
+        {rfqLineId: rfq.rfq.lines[0].id, unitPrice: 1, freightEgpKg: 0, leadTimeDays: 7},
+        {rfqLineId: rfq.rfq.lines[1].id, unitPrice: 1.1, freightEgpKg: 1, leadTimeDays: 9},
+      ],
     };
+    const incompleteQuote = await page.request.post('/api/procurement/rfq/quotes', {
+      data: {...quotePayload, lines: quotePayload.lines.slice(0, 1)},
+    });
+    expect(incompleteQuote.status()).toBe(400);
+    const duplicateQuote = await page.request.post('/api/procurement/rfq/quotes', {
+      data: {...quotePayload, lines: [quotePayload.lines[0], quotePayload.lines[0]]},
+    });
+    expect(duplicateQuote.status()).toBe(400);
     const quoteResponse = await page.request.post('/api/procurement/rfq/quotes', {data: quotePayload});
     expect(quoteResponse.status()).toBe(200);
     const quote = ((await quoteResponse.json()) as {quote: {id: string}}).quote;
@@ -90,6 +105,47 @@ test.describe('commercial transaction integrity', () => {
     expect(conversions.map((response) => response.status()).sort()).toEqual([201, 409]);
     const lateEdit = await page.request.post('/api/procurement/rfq/quotes', {data: quotePayload});
     expect(lateEdit.status()).toBe(409);
+  });
+
+  test('RFQ workspace creates multi-line requests and records complete supplier quotes', async ({page}) => {
+    await login(page, 'procurement');
+    const contextResponse = await page.request.get('/api/procurement/context');
+    expect(contextResponse.status()).toBe(200);
+    const context = (await contextResponse.json()) as {
+      suppliers: Array<{id: string; nameAr: string}>;
+      materials: Array<{id: string; nameAr: string}>;
+    };
+    expect(context.suppliers[0]).toBeTruthy();
+    expect(context.materials.length).toBeGreaterThanOrEqual(2);
+
+    await page.goto('/procurement/rfq');
+    await expect(page.getByRole('heading', {name: 'طلبات عروض الأسعار RFQ'})).toBeVisible();
+    await expect(page.getByLabel('موعد إغلاق RFQ')).not.toHaveValue('');
+    await expect(page.getByLabel('خامة السطر 1')).toHaveValue(context.materials[0].id);
+    await page.getByRole('button', {name: '+ إضافة خامة'}).click();
+    await page.getByLabel('خامة السطر 2').selectOption(context.materials[1].id);
+    await page.getByLabel('كمية السطر 1').fill('120');
+    await page.getByLabel('كمية السطر 2').fill('240');
+
+    const createResponsePromise = page.waitForResponse(response => response.url().endsWith('/api/procurement/rfq') && response.request().method() === 'POST');
+    await page.getByRole('button', {name: 'إصدار RFQ'}).click();
+    const createResponse = await createResponsePromise;
+    expect(createResponse.status()).toBe(201);
+    const created = (await createResponse.json()) as {rfq: {id: string; rfqNo: string; lines: Array<{id: string}>}};
+    const card = page.getByTestId(`rfq-${created.rfq.id}`);
+    await expect(card).toContainText(created.rfq.rfqNo);
+    await card.getByRole('button', {name: '+ تسجيل / تعديل عرض مورد'}).click();
+    await page.getByLabel('المورد').selectOption(context.suppliers[0].id);
+    await page.getByLabel(`سعر ${context.materials[0].nameAr}`).fill('1.2');
+    await page.getByLabel(`سعر ${context.materials[1].nameAr}`).fill('1.3');
+
+    const quoteResponsePromise = page.waitForResponse(response => response.url().endsWith('/api/procurement/rfq/quotes') && response.request().method() === 'POST');
+    await page.getByRole('button', {name: 'حفظ عرض المورد'}).click();
+    const quoteResponse = await quoteResponsePromise;
+    expect(quoteResponse.status()).toBe(200);
+    const quoted = (await quoteResponse.json()) as {quote: {lines: unknown[]}};
+    expect(quoted.quote.lines).toHaveLength(2);
+    await expect(page.getByText(new RegExp(`تم حفظ عرض .* على ${created.rfq.rfqNo}`))).toBeVisible();
   });
 
   test('concurrent sales orders receive distinct atomic document numbers', async ({page}) => {

@@ -12,6 +12,7 @@
 
 ## Full DTY Factory Scope
 - Master Data / Planning / MRP / PR / RFQ / Supplier Quotes / PO / GRN / Landed Cost.
+- RFQ متعدد الخامات مع إدخال عروض الموردين كاملًا، مقارنة التكلفة بالجنيه، ومنع العرض الناقص/المكرر.
 - POY Lot Inventory + QR + Stock Count.
 - تتبع POY/DTY مرئي مع سلسلة الإنتاج/العميل وسجل حركة المخزون، وتسوية رصيد آمنة ونقل ملزم بمواقع التخزين.
 - Production Orders / Runs / Mass Balance / Live Downtime / OEE.
@@ -38,7 +39,7 @@
 - Structural validation ناجح: 73 Prisma model و69 API route و36 page.
 - Security checker ناجح: 45 write routes مفحوصة.
 - Semantic TypeScript check وNext.js production build ناجحان.
-- PostgreSQL-backed security/operational Playwright suite ناجحة: 31/31.
+- PostgreSQL-backed security/operational Playwright suite ناجحة: 32/32.
 - Production container migration، startup secret rejection، readiness، backup، وrestore تم التحقق منها.
 - Alias import resolver: 0 missing local imports.
 - Factory seed: 6 machines / 1,414 spindles / Plant 2100.

@@ -7,6 +7,13 @@ Release Candidate كامل داخل نطاق تشغيل مصنع DTY. نجحت �
 ### Procure-to-Pay
 MRP → PR → RFQ → Supplier Quotes → PO → Approval → GRN/Landed Cost → Supplier Invoice → Payment.
 
+### إصلاح دورة RFQ
+- شاشة RFQ كاملة متعددة الخامات بدل نموذج السطر الواحد ونافذة السعر المؤقتة.
+- تسجيل أو تعديل عرض كل مورد مع العملة وسعر الصرف والصلاحية والسداد وسعر/شحن/مدة توريد كل خامة.
+- مقارنة عروض الموردين بمتوسط تكلفة مرجح بالجنيه قبل اختيار العرض وإنشاء أمر الشراء.
+- منع العروض الناقصة أو مكررة السطور والموردين غير المعتمدين والعروض منتهية الصلاحية.
+- عند اختيار العرض المقبول تُرفض العروض المنافسة المفتوحة آليًا، مع حماية التحويل المتزامن القائمة.
+
 ### Plan-to-Produce
 Production Plan → Production Order → POY Lot Issue → Shift Run → Live Downtime → Mass Balance → DTY Lot → QC → Actual Cost/OEE.
 
@@ -62,7 +69,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 31/31.
+- PostgreSQL-backed Playwright = 32/32.
 - API error-boundary assertions = 4/4.
 - Runtime environment = 4/4؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.

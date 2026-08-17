@@ -14,7 +14,7 @@ UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
 Runtime-environment assertions: 4/4 passed
-PostgreSQL-backed Playwright tests: 31/31 passed
+PostgreSQL-backed Playwright tests: 32/32 passed
 API error-boundary assertions: 4/4 passed
 Security check: passed
 Production dependency vulnerabilities: 0
@@ -33,6 +33,7 @@ RC.3 hardening:
 - tenant-scoped quality holds, traceability, settings and approval decisions
 - atomic database-backed document sequences and collision-resistant finished-lot suffixes
 - transaction-scoped sequences and atomic workflow claims for plan/RFQ/quotation conversion, dispatch and invoicing
+- multi-material RFQ workspace with complete supplier-quote coverage, weighted EGP comparison and automatic competing-quote rejection
 - atomic operational posting claims for runs, downtime, stock counts, maintenance, quality dispositions and approvals
 - leased, tenant-scoped integration outbox claims with stale-lease recovery
 - customer-adjustment sales-order ownership validation

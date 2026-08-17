@@ -45,5 +45,6 @@
 - [x] Live user deactivation وquality/settings plant isolation integration tests.
 - [x] Concurrent document-number وintegration-outbox claim integration tests.
 - [x] Atomic workflow claim tests لتحويل الخطط والشحن والفوترة ومنع الـduplicate posting.
+- [x] RFQ supplier quotes تغطي كل السطور مرة واحدة، وتمنع المورد غير المعتمد والعرض المنتهي، مع اختبار واجهة متعدد الخامات.
 - [x] Atomic operational posting tests للتشغيل والتوقف والجرد والصيانة والجودة والاعتمادات.
 - [x] Customer adjustment reference isolation integration test.

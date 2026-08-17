@@ -178,6 +178,7 @@ enum ApprovalStatus {
 
 enum IntegrationEventStatus {
   PENDING
+  PROCESSING
   SENT
   FAILED
 }
@@ -1297,9 +1298,17 @@ model IntegrationEvent {
   status    IntegrationEventStatus @default(PENDING)
   attempts  Int                    @default(0)
   lastError String?
+  lockedAt  DateTime?
   createdAt DateTime               @default(now())
   sentAt    DateTime?
 
   @@index([status, createdAt])
+  @@index([status, lockedAt, createdAt])
   @@index([companyId, eventType, createdAt])
+}
+
+model DocumentSequence {
+  key       String   @id
+  value     Int
+  updatedAt DateTime @updatedAt
 }

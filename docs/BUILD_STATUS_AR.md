@@ -32,7 +32,7 @@
 - إضافة Docker migrator/runtime targets وproduction Compose بـread-only filesystem/cap-drop/readiness.
 
 ## QA الآلي
-- Structural validation ناجح: 71 Prisma model و69 API route و36 page.
+- Structural validation ناجح: 72 Prisma model و69 API route و36 page.
 - Security checker ناجح: 45 write routes مفحوصة.
 - Semantic TypeScript check وNext.js production build ناجحان.
 - PostgreSQL-backed security/operational Playwright suite ناجحة.

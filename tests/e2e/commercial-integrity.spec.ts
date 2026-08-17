@@ -18,6 +18,39 @@ async function restoreRawBalance(page: Page, lotId: string, qtyKg: number, refId
 }
 
 test.describe('commercial transaction integrity', () => {
+  test('concurrent sales orders receive distinct atomic document numbers', async ({page}) => {
+    await login(page, 'sales');
+    const contextResponse = await page.request.get('/api/sales/context');
+    expect(contextResponse.status()).toBe(200);
+    const context = (await contextResponse.json()) as {
+      customers: Array<{id: string; code: string}>;
+      products: Array<{id: string; code: string}>;
+    };
+    const customer = context.customers.find((candidate) => candidate.code === 'CUST-A');
+    const product = context.products.find((candidate) => candidate.code === 'FG-DTY-0300-096-NIM-SD');
+    expect(customer).toBeTruthy();
+    expect(product).toBeTruthy();
+    const payload = {
+      customerId: customer!.id,
+      currency: 'EGP',
+      lines: [{
+        productId: product!.id,
+        qtyKg: 1,
+        unitPrice: 120,
+        requiredDate: new Date(Date.now() + 86_400_000).toISOString(),
+      }],
+    };
+    const responses = await Promise.all([
+      page.request.post('/api/sales/orders', {data: payload}),
+      page.request.post('/api/sales/orders', {data: payload}),
+    ]);
+    expect(responses.map((response) => response.status())).toEqual([201, 201]);
+    const orderNumbers = await Promise.all(responses.map(async (response) =>
+      ((await response.json()) as {order: {orderNo: string}}).order.orderNo));
+    expect(new Set(orderNumbers).size).toBe(2);
+    expect(orderNumbers.every((orderNo) => /^SO-\d{2}-\d{6}$/.test(orderNo))).toBe(true);
+  });
+
   test('concurrent finished-goods allocation reserves stock exactly once', async ({page}) => {
     await login(page, 'prod_mgr');
     const productionContextResponse = await page.request.get(
@@ -289,5 +322,29 @@ test.describe('commercial transaction integrity', () => {
       }>;
     }).rows.find((candidate) => candidate.id === invoice.id);
     expect(paid).toMatchObject({paid: 100, outstanding: 0, payments: 2, status: 'PAID'});
+  });
+
+  test('customer adjustments reject unrelated sales-order references', async ({page}) => {
+    await login(page, 'owner');
+    const contextResponse = await page.request.get('/api/sales/context');
+    expect(contextResponse.status()).toBe(200);
+    const customer = ((await contextResponse.json()) as {
+      customers: Array<{id: string; code: string}>;
+    }).customers.find((candidate) => candidate.code === 'CUST-A');
+    expect(customer).toBeTruthy();
+    const response = await page.request.post('/api/analytics/customers/adjustments', {
+      data: {
+        customerId: customer!.id,
+        salesOrderId: 'sales-order-outside-scope',
+        type: 'OTHER',
+        amountEgp: 10,
+        notes: 'E2E tenant reference check',
+      },
+    });
+    expect(response.status()).toBe(400);
+    expect(await response.json()).toMatchObject({
+      ok: false,
+      error: 'أمر البيع لا يطابق العميل أو المصنع',
+    });
   });
 });

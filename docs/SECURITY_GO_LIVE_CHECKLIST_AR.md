@@ -38,3 +38,5 @@
 - [x] Credit override approval/audit integration test. يبقى UAT الميداني.
 - [x] Supplier concurrent overpayment rejection integration test. يبقى UAT الميداني.
 - [x] Live user deactivation وquality/settings plant isolation integration tests.
+- [x] Concurrent document-number وintegration-outbox claim integration tests.
+- [x] Customer adjustment reference isolation integration test.

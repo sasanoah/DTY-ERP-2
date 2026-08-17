@@ -22,6 +22,10 @@ export default defineConfig({
   webServer: {
     command: 'npm run start',
     url: 'http://localhost:3000/api/health',
+    env: {
+      N8N_WEBHOOK_URL: 'http://127.0.0.1:4010',
+      INTEGRATION_WEBHOOK_SECRET: 'ci-integration-webhook-secret-change-me',
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

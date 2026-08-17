@@ -7,14 +7,14 @@ Plant seed: 2100
 Machines seed: 6
 Total spindles: 1414
 TypeScript/TSX files checked: 135
-Prisma models: 71
+Prisma models: 72
 Prisma enums: 26
 API route files: 69
 UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
 Runtime-environment assertions: 3/3 passed
-PostgreSQL-backed Playwright tests: 20/20 passed
+PostgreSQL-backed Playwright tests: 23/23 passed
 Security check: passed
 Production dependency vulnerabilities: 0
 
@@ -27,13 +27,16 @@ RC.3 hardening:
 - plant/company-scoped sales-order confirmation
 - database-refreshed user status and role authorization
 - tenant-scoped quality holds, traceability, settings and approval decisions
+- atomic database-backed document sequences and collision-resistant finished-lot suffixes
+- leased, tenant-scoped integration outbox claims with stale-lease recovery
+- customer-adjustment sales-order ownership validation
 - POY/BOM/Shift validation on run start
 - quality/master-data tenant isolation
 - fresh-baseline migration plus backward-compatible quality-hold tenant backfill; old additive SQL moved to legacy-migrations
 - fail-fast production runtime environment validation
 - dedicated Docker migrator and read-only/cap-drop runtime composition
 - transactional PostgreSQL backup/restore drill in CI
-- concurrent inventory/allocation/payment, credit-override audit, stock-count conflict, mass-balance, traceability, live user revocation, plant settings, quality scope, auth and RBAC integration coverage
+- concurrent inventory/allocation/payment/document-number/outbox, credit-override audit, stock-count conflict, mass-balance, traceability, live user revocation, plant settings, quality scope, finance reference, auth and RBAC integration coverage
 
 Executed in this workspace:
 - node scripts/prisma-structure-check.mjs

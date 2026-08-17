@@ -33,6 +33,9 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Live authorization يعيد التحقق من حالة المستخدم والأدوار الحالية في قاعدة البيانات لكل طلب محمي.
 - Tenant-scoped quality holds وtraceability وsettings وapproval decisions مع migration لترحيل البيانات السابقة.
 - أخطاء التحقق من المدخلات ترجع HTTP 400 بدل تصنيفها كأخطاء خادم.
+- Atomic document sequences تمنع تكرار أرقام المستندات عند الإنشاء المتزامن، مع backfill للأرقام القائمة.
+- Integration outbox يستخدم leased atomic claims واسترجاع الـleases المتوقفة ويعزل أحداث المستخدم حسب الشركة/المصنع.
+- Customer cost adjustments تتحقق أن أمر البيع يطابق العميل والمصنع.
 - BOM/Shift/Plant validation عند بدء Production Run.
 - منع إغلاق Run مع downtime مفتوح.
 - Inventory Adjustment يحتاج صلاحية Stock Count.
@@ -41,11 +44,11 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 
 ## QA الآلي
 - 135 TS/TSX files: semantic typecheck وNext production build ناجحان.
-- Prisma structure: 71 models / 26 enums / missing targets = 0 / duplicate fields = 0.
+- Prisma structure: 72 models / 26 enums / missing targets = 0 / duplicate fields = 0.
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 20/20.
+- PostgreSQL-backed Playwright = 23/23.
 - Runtime environment = 3/3؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.
 - npm production audit = 0 vulnerabilities.

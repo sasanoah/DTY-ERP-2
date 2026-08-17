@@ -7,7 +7,7 @@
     "nextProductionBuildPassed": true
   },
   "prisma": {
-    "models": 71,
+    "models": 72,
     "enums": 26,
     "missingTypeTargets": 0,
     "duplicateFields": 0,
@@ -22,7 +22,7 @@
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
     "runtimeEnvironment": {"passed": 3, "total": 3},
-    "postgresPlaywright": {"passed": 20, "total": 20}
+    "postgresPlaywright": {"passed": 23, "total": 23}
   },
   "securityCheck": {
     "passed": true,
@@ -45,6 +45,10 @@
       "quality-hold-tenant-isolation",
       "settings-plant-isolation",
       "approval-tenant-isolation",
+      "atomic-document-number-sequences",
+      "leased-integration-event-claims",
+      "integration-event-tenant-isolation",
+      "customer-adjustment-reference-isolation",
       "write-routes-authenticated",
       "ai-assistant-read-only"
     ]

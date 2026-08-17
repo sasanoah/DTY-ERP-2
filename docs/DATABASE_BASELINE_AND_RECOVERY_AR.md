@@ -1,42 +1,54 @@
 # قاعدة البيانات — Baseline / Pilot / Recovery
 
 ## لماذا تم فصل migrations القديمة؟
-الملفات القديمة كانت additive وتفترض وجود قاعدة V0.5 مسبقًا. لذلك تم نقلها إلى `prisma/legacy-migrations` حتى لا يتم تشغيلها بالخطأ على قاعدة فارغة.
+الملفات القديمة additive وتفترض وجود قاعدة V0.5 مسبقًا. لذلك نقلت إلى `prisma/legacy-migrations` حتى لا تنفذ بالخطأ على قاعدة فارغة.
 
 ## Pilot / UAT فقط
 على قاعدة فارغة غير Production:
 
 ```bash
-npm install
+npm ci
 cp .env.example .env
 npm run pilot:bootstrap
 ```
 
-هذا المسار يستخدم `prisma db push` لتسريع الـPilot ولا يعتبر migration history للإنتاج.
+هذا المسار يستخدم `prisma db push` لتسريع Pilot ولا يعتبر migration history للإنتاج.
 
-## إنشاء Baseline نظيف قبل Staging/Production
-بعد تثبيت الحزم:
-
-```bash
-npm run db:baseline
-```
-
-الأمر يولّد SQL من Empty Database إلى `schema.prisma` الحالي. راجع الملف الناتج بالكامل ثم:
+## Staging / Production
+الـbaseline النظيف موجود في `prisma/migrations/000000000000_baseline`. يستخدم Staging/Production فقط:
 
 ```bash
 npx prisma migrate deploy
 ```
 
+ويمكن تنفيذه بالـmigrator image في `compose.production.yml` قبل بدء التطبيق.
+
 ## النسخ الاحتياطي
 
 ```bash
-DATABASE_URL='...' npm run db:backup
+DATABASE_URL='...' npm run db:backup -- /secure/backups/dty-erp.dump
 ```
+
+السكربت يرفض الكتابة فوق ملف موجود، يكتب بـpermission `0600`، ويتحقق من dump catalog قبل اعتبار النسخة ناجحة.
 
 ## الاستعادة
 
 ```bash
-DATABASE_URL='...' npm run db:restore -- backup.dump
+RESTORE_CONFIRM=YES DATABASE_URL='...' npm run db:restore -- /secure/backups/dty-erp.dump
 ```
 
-يجب اختبار Restore فعليًا قبل Go-Live، وليس الاكتفاء بوجود backup file.
+الاستعادة تتحقق من dump وتنفذ كـtransaction واحدة، وتطلب `RESTORE_CONFIRM=YES` لمنع تنفيذها بالخطأ.
+
+## Restore drill آلي
+
+```bash
+SOURCE_DATABASE_URL='...' \
+RESTORE_ADMIN_URL='postgresql://.../postgres' \
+RESTORE_DATABASE_NAME='dty_erp_restore_drill' \
+RESTORE_DATABASE_URL='postgresql://.../dty_erp_restore_drill?schema=public' \
+npm run db:drill
+```
+
+يرفض السكربت أي target لا ينتهي بـ`_restore_drill`، ويقارن أعداد Company/Plant/User/InventoryLot وmigration history بعد الاستعادة. CI يشغل هذا الاختبار مع كل PR.
+
+قبل Go-Live يجب تكرار الـdrill على Staging مع encrypted production-like backup storage، وتسجيل RPO/RTO الفعليين.

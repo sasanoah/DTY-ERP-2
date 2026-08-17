@@ -1,7 +1,7 @@
 # DTY ERP — Release Notes V1.0-RC.3
 
 ## الحالة
-Release Candidate كامل داخل نطاق تشغيل مصنع DTY. لم يُعلن Production Final لأن بيئة الإنشاء لا تسمح بتثبيت Prisma/Next أو تشغيل build النهائي.
+Release Candidate كامل داخل نطاق تشغيل مصنع DTY. نجحت البوابات التقنية وGitHub CI؛ لم يُعلن Production Final حتى نشر Staging وإكمال الـPilot والتوقيعات التشغيلية.
 
 ## نطاق V1
 ### Procure-to-Pay
@@ -34,16 +34,19 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Master Data updates tenant-scoped.
 - Security scanner يفحص 45 write route ويؤكد authentication markers.
 
-## QA داخل workspace
-- 127 TS/TSX files: syntax errors = 0.
+## QA الآلي
+- 135 TS/TSX files: semantic typecheck وNext production build ناجحان.
 - Prisma structure: 71 models / 26 enums / missing targets = 0 / duplicate fields = 0.
 - Business Rule assertions = 10 passed.
-- API routes = 68; pages = 36.
+- API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
+- PostgreSQL-backed Playwright = 14/14.
+- Runtime environment = 3/3؛ weak/example secrets مرفوضة.
+- PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.
+- npm production audit = 0 vulnerabilities.
 
-## Blockers قبل Production Final
-- npm/Prisma/Next production build في بيئة متصلة.
-- package-lock generation.
-- baseline migration clean DB.
-- semantic TypeScript build + Playwright E2E.
-- Actual master/cost data + real pilot.
+## البوابة المتبقية قبل Production Final
+- Staging خلف HTTPS/WAF مع managed secrets وprivate least-privilege PostgreSQL.
+- Encrypted production-like backup/restore مع RPO/RTO مقاسين.
+- Actual master/cost data وخمس ورديات Pilot reconciled.
+- إغلاق Critical/High UAT issues وتوقيع Production/Warehouse/QC/Finance.

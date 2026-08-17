@@ -1,19 +1,22 @@
 DTY ERP V1.0-RC.3
-Date: 2026-08-09
+Date: 2026-08-17
 Scope: Full DTY Factory ERP Release Candidate
 Arabic-first RTL: yes
 Multi-company / multi-plant: yes
 Plant seed: 2100
 Machines seed: 6
 Total spindles: 1414
-TypeScript/TSX syntax files checked: 128
+TypeScript/TSX files checked: 135
 Prisma models: 71
 Prisma enums: 26
 API route files: 69
 UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
+Runtime-environment assertions: 3/3 passed
+PostgreSQL-backed Playwright tests: 14/14 passed
 Security check: passed
+Production dependency vulnerabilities: 0
 
 RC.3 hardening:
 - company/plant ownership checks on critical writes
@@ -23,6 +26,10 @@ RC.3 hardening:
 - POY/BOM/Shift validation on run start
 - quality/master-data tenant isolation
 - fresh-baseline migration strategy; old additive SQL moved to legacy-migrations
+- fail-fast production runtime environment validation
+- dedicated Docker migrator and read-only/cap-drop runtime composition
+- transactional PostgreSQL backup/restore drill in CI
+- concurrent inventory, stock-count conflict, mass-balance, traceability, auth and RBAC integration coverage
 
 Executed in this workspace:
 - node scripts/prisma-structure-check.mjs
@@ -30,15 +37,14 @@ Executed in this workspace:
 - node scripts/validate.mjs
 - TypeScript transpile syntax scan
 - compiled domain business-rule tests
+- npm ci and npm production audit
+- prisma format/validate/generate and PostgreSQL 16 migrate deploy
+- semantic TypeScript project check and Next.js production build
+- PostgreSQL backup/restore drill with critical-count verification
+- production Docker migrator/runtime, weak-secret rejection and readiness
+- Playwright E2E security and operational-integrity suite
 
-Could not execute because network/tooling is unavailable in this workspace:
-- npm dependency install (internal registry 404; public npm DNS EAI_AGAIN)
-- prisma format/validate/generate/migrate
-- semantic project typecheck against installed dependencies
-- Next production build
-- Playwright E2E
-
-Codex connection status visible to this assistant:
-- no invokable Codex coding namespace
-- codex CLI not installed
-- GitHub connector returns no project repositories
+Remaining operational go-live gates:
+- staging HTTPS/WAF, managed secrets, private least-privilege PostgreSQL and encrypted backups
+- measured staging restore RPO/RTO
+- five reconciled pilot shifts and operational sign-off

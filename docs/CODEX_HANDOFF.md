@@ -2,16 +2,15 @@
 
 هذه الحزمة هي نقطة البداية الوحيدة. لا تعيد تصميم الـdomain model بدون سبب موثق.
 
-## المهمة الأولى داخل Codex Coding Workspace
-1. افتح المشروع root.
-2. `npm install --no-audit --no-fund` لأن package-lock غير موجود نتيجة حجب npm في workspace الإنشاء.
-3. Commit `package-lock.json` ثم غيّر CI/Docker إلى `npm ci`.
-4. `npx prisma format && npx prisma validate && npx prisma generate`.
-5. شغّل PostgreSQL 16 ثم نفّذ `npm run db:baseline` وراجع SQL الناتج قبل `prisma migrate deploy`.
-6. `npm run test:domain && npm run test:structure && npm run security:check`.
-7. `npm run typecheck && npm run build` وأصلح أي compile/runtime defects دون تغيير business meaning.
-8. أضف Playwright E2E للـcritical flows.
-9. افتح Draft PR بعد نجاح الاختبارات فقط.
+## الحالة الحالية
+تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، وDraft PR. لا تعد هذه الخطوات.
+
+## المهمة التالية
+1. نشر immutable app/migrator images على Staging خلف HTTPS/WAF.
+2. ضبط managed secrets وprivate least-privilege PostgreSQL.
+3. تنفيذ encrypted backup/restore drill وتسجيل RPO/RTO.
+4. إكمال E2E لـconcurrent FG allocation، credit override audit، وsupplier overpayment.
+5. تنفيذ خمس ورديات Pilot reconciled وجمع التوقيعات.
 
 ## Critical E2E flows
 - Login + RBAC + اختيار Plant مصرح.

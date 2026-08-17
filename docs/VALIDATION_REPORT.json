@@ -1,27 +1,32 @@
 {
   "release": "1.0.0-rc.3",
-  "generatedAt": "2026-08-09",
-  "syntax": {
-    "typescriptTsxFiles": 128,
-    "errors": 0
+  "generatedAt": "2026-08-17",
+  "source": {
+    "typescriptTsxFiles": 135,
+    "semanticTypecheckPassed": true,
+    "nextProductionBuildPassed": true
   },
-  "prismaStructure": {
+  "prisma": {
     "models": 71,
     "enums": 26,
     "missingTypeTargets": 0,
-    "duplicateFields": 0
+    "duplicateFields": 0,
+    "baselineMigrationDeployPassed": true,
+    "postgresVersion": 16
   },
   "application": {
     "apiRouteFiles": 69,
     "pages": 36,
     "writeRoutesSecurityScanned": 45
   },
-  "businessRules": {
-    "tests": 10,
-    "passed": 10
+  "tests": {
+    "businessRules": {"passed": 10, "total": 10},
+    "runtimeEnvironment": {"passed": 3, "total": 3},
+    "postgresPlaywright": {"passed": 14, "total": 14}
   },
   "securityCheck": {
     "passed": true,
+    "productionDependencyVulnerabilities": 0,
     "checks": [
       "no-default-password-in-login",
       "no-hardcoded-api-keys",
@@ -36,23 +41,23 @@
       "ai-assistant-read-only"
     ]
   },
+  "deployment": {
+    "deterministicNpmInstall": true,
+    "migrationImagePassed": true,
+    "readOnlyRuntimeImagePassed": true,
+    "weakPlaceholderSecretsRejected": true,
+    "databaseReadinessPassed": true,
+    "backupRestoreDrillPassed": true
+  },
   "factorySeed": {
     "machines": 6,
     "spindles": 1414,
     "plantCode": "2100"
   },
-  "releaseHardening": [
-    "tenant-scoped critical writes",
-    "race-safe FG allocation/dispatch guards",
-    "BOM/shift/plant run-start validation",
-    "quality disposition scope",
-    "master-data scope",
-    "login plant authorization"
-  ],
-  "limitations": [
-    "Prisma/Next dependencies cannot be installed in current workspace: internal registry 404 for @prisma/client and direct npmjs DNS EAI_AGAIN",
-    "Prisma format/validate/generate and Next semantic typecheck/build must run in connected Codex/CI workspace",
-    "Fresh database baseline migration must be generated from current schema; legacy additive migrations were moved to prisma/legacy-migrations",
-    "No invokable Codex coding namespace or CLI is exposed in this session; GitHub connector exposes no project repository"
+  "remainingGoLiveGates": [
+    "Deploy immutable image digests behind staging HTTPS/WAF with managed secrets and a private least-privilege PostgreSQL user",
+    "Repeat backup/restore using encrypted production-like storage and record measured RPO/RTO",
+    "Complete five reconciled pilot shifts and close Critical/High UAT findings",
+    "Obtain Production, Warehouse, Quality, and Finance sign-off"
   ]
 }

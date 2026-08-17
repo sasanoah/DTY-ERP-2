@@ -14,24 +14,24 @@
 
 ## إلزامي قبل Production
 - [ ] `SESSION_SECRET` قوي وفريد.
-- [ ] Generate+commit package-lock ثم CI بـ`npm ci`.
-- [ ] Prisma validate/generate + clean baseline migration.
-- [ ] Full semantic typecheck + Next build + E2E.
+- [x] Generate+commit package-lock ثم CI بـ`npm ci`.
+- [x] Prisma validate/generate + clean baseline migration.
+- [x] Full semantic typecheck + Next build + E2E.
 - [ ] HTTPS/WAF/reverse proxy.
 - [ ] Distributed rate limit (Redis/Gateway) إذا أكثر من instance.
 - [ ] MFA للإدارة العليا والمالية.
 - [ ] PostgreSQL private + least privilege DB user.
-- [ ] Encrypted backups + restore drill.
+- [x] Backup/restore drill آلي في CI. تشفير storage/KMS يضبط في بيئة النشر.
 - [ ] CSP نهائي بعد اختبار Next assets.
 - [ ] مراجعة RBAC لكل مستخدم وPlant.
 - [ ] n8n webhook secret + network restriction.
 - [ ] Secret/log redaction وmonitoring للـ5xx/DB/outbox failures.
 
 ## سلامة البيانات
-- [ ] Lot traceability end-to-end UAT.
-- [ ] HOLD يمنع issue/allocation/dispatch.
-- [ ] Stock count conflict test.
-- [ ] Concurrent inventory issue/allocation tests.
-- [ ] Mass balance tolerance UAT.
+- [x] Lot traceability API integration test. يبقى UAT الميداني.
+- [x] PENDING/HOLD يمنع issue وتوجد guards للـallocation/dispatch. يبقى UAT الميداني.
+- [x] Stock count conflict integration test.
+- [x] Concurrent inventory issue integration tests. يبقى concurrent allocation UAT/test.
+- [x] Mass balance integration test. يبقى UAT الميداني.
 - [ ] Credit override audit UAT.
 - [ ] Supplier overpayment rejection UAT.

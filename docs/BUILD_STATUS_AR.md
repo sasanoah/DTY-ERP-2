@@ -27,17 +27,20 @@
 - إضافة `npm run db:baseline` لتوليد baseline نظيف من schema الحالية.
 - إضافة `npm run pilot:bootstrap` لبيئة Pilot/UAT فقط باستخدام `prisma db push`.
 - إضافة `/api/health` و`/api/health/ready` المرتبط بقاعدة البيانات.
-- إضافة PostgreSQL backup/restore scripts وRelease Gate.
-- CI الآن يستخدم PostgreSQL 16 service ويعمل بـnpm install عند غياب lockfile.
+- إضافة PostgreSQL backup/transactional-restore scripts وrestore drill مؤتمت.
+- CI يستخدم `npm ci`، PostgreSQL 16، baseline migration، runtime configuration tests، وPlaywright E2E.
+- إضافة Docker migrator/runtime targets وproduction Compose بـread-only filesystem/cap-drop/readiness.
 
-## QA داخل بيئة البناء
+## QA الآلي
 - Structural validation ناجح: 71 Prisma model و69 API route و36 page.
 - Security checker ناجح: 45 write routes مفحوصة.
-- Offline TypeScript compiler scan بعد الإصلاحات: 0 actionable diagnostics؛ أخطاء external modules/types فقط متوقعة بسبب غياب node_modules.
+- Semantic TypeScript check وNext.js production build ناجحان.
+- PostgreSQL-backed security/operational Playwright suite ناجحة.
+- Production container migration، startup secret rejection، readiness، backup، وrestore تم التحقق منها.
 - Alias import resolver: 0 missing local imports.
 - Factory seed: 6 machines / 1,414 spindles / Plant 2100.
 
-## External Go-Live Gate
-- Internal npm registry يعيد 404 لـ`@prisma/client`، لذلك dependency install الكامل غير ممكن هنا.
-- GitHub/Codex connector متصل لكنه يعرض 0 repositories في هذه الجلسة.
-- مطلوب على Registry طبيعي: install → Prisma format/validate/generate → `db:baseline` → typecheck → tests → Next build → PostgreSQL UAT.
+## البوابة المتبقية قبل Go-Live
+- Staging خلف HTTPS/WAF مع secrets من secret manager وPostgreSQL private/least-privilege.
+- Restore drill على encrypted production-like storage وقياس RPO/RTO.
+- UAT لدورة POY → DTY → QC → Sales → Finance، خمس ورديات reconciled، وتوقيع الإدارات.

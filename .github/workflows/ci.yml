@@ -34,7 +34,15 @@ jobs:
       - run: npx prisma generate
       - run: npx prisma migrate deploy
       - run: npm run db:seed
+      - name: Verify PostgreSQL backup and restore
+        env:
+          SOURCE_DATABASE_URL: postgresql://dty:dty@localhost:5432/dty_erp_ci?schema=public
+          RESTORE_ADMIN_URL: postgresql://dty:dty@localhost:5432/postgres
+          RESTORE_DATABASE_NAME: dty_erp_restore_drill
+          RESTORE_DATABASE_URL: postgresql://dty:dty@localhost:5432/dty_erp_restore_drill?schema=public
+        run: npm run db:drill
       - run: npm run test:domain
+      - run: npm run test:runtime-env
       - run: npm run test:structure
       - run: npm run security:check
       - run: npm run typecheck

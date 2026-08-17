@@ -3,7 +3,7 @@
 هذه الحزمة هي نقطة البداية الوحيدة. لا تعيد تصميم الـdomain model بدون سبب موثق.
 
 ## الحالة الحالية
-تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، واختبارات concurrent FG allocation وcredit override audit وsupplier overpayment، وDraft PR. لا تعد هذه الخطوات.
+تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، واختبارات concurrent FG allocation وcredit override audit وsupplier overpayment وlive user revocation وquality/settings isolation، وDraft PR. لا تعد هذه الخطوات.
 
 ## المهمة التالية
 1. نشر immutable app/migrator images على Staging خلف HTTPS/WAF.
@@ -25,7 +25,7 @@
 ## Security review المطلوبة من Codex
 - تحقق company/plant isolation على كل GET/WRITE، وليس فقط critical routes.
 - CSRF/same-origin strategy الحالية + reverse proxy configuration.
-- Session rotation / logout invalidation strategy.
+- إضافة central session-version revocation فقط إذا تطلب التشغيل إبطال كل الجلسات قبل انتهاء صلاحيتها؛ تعطيل المستخدم أو تغيير أدواره يطبق فورًا حاليًا.
 - Distributed login rate-limit إذا كان deployment متعدد instances.
 - Security headers/CSP مناسب لـNext.
 - Secrets/log redaction.

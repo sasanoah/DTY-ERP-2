@@ -22,7 +22,7 @@
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
     "runtimeEnvironment": {"passed": 3, "total": 3},
-    "postgresPlaywright": {"passed": 17, "total": 17}
+    "postgresPlaywright": {"passed": 20, "total": 20}
   },
   "securityCheck": {
     "passed": true,
@@ -36,9 +36,15 @@
       "secure-response-headers",
       "login-rate-limit",
       "plant-selection-authorization",
+      "live-user-session-authorization",
+      "company-scoped-permission-resolution",
       "critical-write-tenant-isolation",
       "sales-confirmation-tenant-isolation",
       "atomic-supplier-payment-reservation",
+      "traceability-tenant-isolation",
+      "quality-hold-tenant-isolation",
+      "settings-plant-isolation",
+      "approval-tenant-isolation",
       "write-routes-authenticated",
       "ai-assistant-read-only"
     ]

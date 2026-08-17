@@ -91,6 +91,105 @@ test.describe('production security and RBAC boundaries', () => {
     });
   });
 
+  test('protected requests refresh user status and role assignments', async ({browser}) => {
+    const ownerContext = await browser.newContext();
+    const warehouseContext = await browser.newContext();
+    const ownerPage = await ownerContext.newPage();
+    const warehousePage = await warehouseContext.newPage();
+    await login(ownerPage, 'owner');
+    await login(warehousePage, 'warehouse');
+
+    const usersResponse = await ownerPage.request.get('/api/admin/users');
+    expect(usersResponse.status()).toBe(200);
+    const warehouse = ((await usersResponse.json()) as {
+      users: Array<{
+        id: string;
+        username: string;
+        fullNameAr: string;
+        mobile: string | null;
+        roles: Array<{role: {code: string}; plantId: string | null}>;
+      }>;
+    }).users.find((candidate) => candidate.username === 'warehouse');
+    expect(warehouse).toBeTruthy();
+    const roleCodes = [...new Set(warehouse!.roles.map((assignment) => assignment.role.code))];
+    const plantId = warehouse!.roles.find((assignment) => assignment.plantId)?.plantId;
+    expect(plantId).toBeTruthy();
+    const updatePayload = {
+      id: warehouse!.id,
+      username: warehouse!.username,
+      fullNameAr: warehouse!.fullNameAr,
+      ...(warehouse!.mobile ? {mobile: warehouse!.mobile} : {}),
+      roleCodes,
+      plantId,
+    };
+
+    try {
+      const disable = await ownerPage.request.post('/api/admin/users', {
+        data: {...updatePayload, active: false},
+      });
+      expect(disable.status()).toBe(200);
+      const staleSession = await warehousePage.request.get('/api/inventory/lots');
+      expect(staleSession.status()).toBe(401);
+      expect(await staleSession.json()).toMatchObject({ok: false, error: 'UNAUTHORIZED'});
+    } finally {
+      const enable = await ownerPage.request.post('/api/admin/users', {
+        data: {...updatePayload, active: true},
+      });
+      expect(enable.status()).toBe(200);
+      await ownerContext.close();
+      await warehouseContext.close();
+    }
+  });
+
+  test('validation errors are client errors and settings cannot target another plant', async ({page}) => {
+    await login(page, 'owner');
+    const invalid = await page.request.post('/api/settings', {data: {key: 'x'}});
+    expect(invalid.status()).toBe(400);
+    expect(await invalid.json()).toMatchObject({ok: false, error: 'VALIDATION_ERROR'});
+    const response = await page.request.post('/api/settings', {
+      data: {key: 'E2E_SCOPE_GUARD', value: {enabled: true}, plantId: 'plant-outside-scope'},
+    });
+    expect(response.status()).toBe(403);
+    expect(await response.json()).toMatchObject({ok: false, error: 'المصنع غير مصرح'});
+  });
+
+  test('quality holds are plant-scoped and reject foreign references', async ({page}) => {
+    await login(page, 'quality');
+    const rejected = await page.request.post('/api/quality/holds', {
+      data: {refType: 'INVENTORY_LOT', refId: 'lot-outside-scope', reason: 'اختبار العزل'},
+    });
+    expect(rejected.status()).toBe(404);
+    expect(await rejected.json()).toMatchObject({
+      ok: false,
+      error: 'Lot الجودة غير موجود داخل المصنع',
+    });
+
+    const itemsResponse = await page.request.get('/api/quality/items');
+    expect(itemsResponse.status()).toBe(200);
+    const rawLot = ((await itemsResponse.json()) as {
+      rawLots: Array<{id: string; lotNo: string}>;
+    }).rawLots.find((candidate) => candidate.lotNo === 'POY-2608-0001');
+    expect(rawLot).toBeTruthy();
+    const createdResponse = await page.request.post('/api/quality/holds', {
+      data: {refType: 'INVENTORY_LOT', refId: rawLot!.id, reason: 'اختبار نطاق الجودة'},
+    });
+    expect(createdResponse.status()).toBe(201);
+    const created = ((await createdResponse.json()) as {
+      hold: {id: string; companyId: string | null; plantId: string | null};
+    }).hold;
+    expect(created.companyId).toBeTruthy();
+    expect(created.plantId).toBeTruthy();
+
+    const holdsResponse = await page.request.get('/api/quality/holds');
+    expect(holdsResponse.status()).toBe(200);
+    expect(((await holdsResponse.json()) as {holds: Array<{id: string}>}).holds)
+      .toContainEqual(expect.objectContaining({id: created.id}));
+    const release = await page.request.post(`/api/quality/holds/${created.id}/disposition`, {
+      data: {disposition: 'RELEASED', note: 'إغلاق اختبار النطاق'},
+    });
+    expect(release.status()).toBe(200);
+  });
+
   test('cross-origin writes are rejected before route execution', async ({request}) => {
     const response = await request.post('/api/inventory/movements', {
       headers: {origin: 'https://attacker.example'},

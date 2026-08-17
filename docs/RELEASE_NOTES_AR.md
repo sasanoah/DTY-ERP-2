@@ -30,6 +30,9 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Race-safe guards في FG allocation/dispatch.
 - Optimistic concurrency في FG allocation وsupplier payments لمنع الحجز أو السداد المزدوج.
 - Plant/company isolation على sales-order confirmation مع credit-override approval/audit coverage.
+- Live authorization يعيد التحقق من حالة المستخدم والأدوار الحالية في قاعدة البيانات لكل طلب محمي.
+- Tenant-scoped quality holds وtraceability وsettings وapproval decisions مع migration لترحيل البيانات السابقة.
+- أخطاء التحقق من المدخلات ترجع HTTP 400 بدل تصنيفها كأخطاء خادم.
 - BOM/Shift/Plant validation عند بدء Production Run.
 - منع إغلاق Run مع downtime مفتوح.
 - Inventory Adjustment يحتاج صلاحية Stock Count.
@@ -42,7 +45,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 17/17.
+- PostgreSQL-backed Playwright = 20/20.
 - Runtime environment = 3/3؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.
 - npm production audit = 0 vulnerabilities.

@@ -1,11 +1,12 @@
-import {prisma} from '@/lib/prisma'; import {requireUser,apiError} from '@/lib/rbac'; import {cairoPeriod} from '@/lib/date'; import {runOee} from '@/lib/costing';
+import {prisma} from '@/lib/prisma'; import {requireUser,apiError} from '@/lib/rbac'; import {cairoPeriod} from '@/lib/date'; import {runOee} from '@/lib/costing'; import {scopedQualityHoldWhere} from '@/lib/quality-scope';
 export async function GET(){try{const s=await requireUser();const {startDay,startMonth}=cairoPeriod();
  const canFinance=s.roles.includes('OWNER')||s.roles.includes('FINANCE');const canCost=canFinance||s.roles.includes('PRODUCTION_MANAGER');
+ const holdScope=scopedQualityHoldWhere(s.companyId,s.plantId);
  const [todayRuns,monthRuns,lots,holds,machines,dbAlerts,openMaintenance,lowSpares,customerInvoices,supplierInvoices,openApprovals]=await Promise.all([
   prisma.productionRun.findMany({where:{startTime:{gte:startDay},productionOrder:{machine:{plantId:s.plantId}}},include:{productionOrder:{include:{machine:true,product:true}}}}),
   prisma.productionRun.findMany({where:{startTime:{gte:startMonth},productionOrder:{machine:{plantId:s.plantId}}}}),
   prisma.inventoryLot.findMany({where:{warehouse:{plantId:s.plantId},material:{type:'POY'},qcStatus:'RELEASED'},select:{availableQtyKg:true}}),
-  prisma.qualityHold.count({where:{status:{in:['OPEN','INVESTIGATING']}}}),
+  prisma.qualityHold.count({where:{status:{in:['OPEN','INVESTIGATING']},...holdScope}}),
   prisma.machine.findMany({where:{plantId:s.plantId},orderBy:{code:'asc'},include:{productionOrders:{where:{runs:{some:{startTime:{gte:startDay}}}},include:{product:true,runs:{where:{startTime:{gte:startDay}}}}}}}),
   prisma.alert.findMany({where:{plantId:s.plantId,status:{in:['OPEN','ACKNOWLEDGED']}},orderBy:[{severity:'desc'},{createdAt:'desc'}],take:10}),
   prisma.maintenanceOrder.count({where:{machine:{plantId:s.plantId},status:{notIn:['CLOSED','CANCELLED']}}}),

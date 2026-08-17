@@ -10,7 +10,7 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
     if(!s.plantId)throw Object.assign(new Error('PLANT_REQUIRED'),{status:400});
     const {id}=await params;const d=schema.parse(await req.json());
     const hold=await prisma.$transaction(async tx=>{
-      const h=await tx.qualityHold.findUnique({where:{id}});if(!h)throw Object.assign(new Error('Hold غير موجود'),{status:404});
+      const h=await tx.qualityHold.findFirst({where:{id,companyId:s.companyId,plantId:s.plantId}});if(!h)throw Object.assign(new Error('Hold غير موجود'),{status:404});
       if(!['OPEN','INVESTIGATING'].includes(h.status))throw Object.assign(new Error('تم إغلاق Hold بالفعل'),{status:409});
       if(h.refType==='INVENTORY_LOT'){
         const lot=await tx.inventoryLot.findFirst({where:{id:h.refId,warehouse:{plantId:s.plantId},material:{companyId:s.companyId}}});

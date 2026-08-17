@@ -835,15 +835,19 @@ model QualityTest {
 }
 
 model QualityHold {
-  id       String     @id @default(cuid())
-  refType  String
-  refId    String
-  reason   String
-  status   HoldStatus @default(OPEN)
-  openedBy String
-  openedAt DateTime   @default(now())
-  closedBy String?
-  closedAt DateTime?
+  id        String     @id @default(cuid())
+  companyId String?
+  plantId   String?
+  refType   String
+  refId     String
+  reason    String
+  status    HoldStatus @default(OPEN)
+  openedBy  String
+  openedAt  DateTime   @default(now())
+  closedBy  String?
+  closedAt  DateTime?
+
+  @@index([companyId, plantId, status])
 }
 
 model SalesQuotation {

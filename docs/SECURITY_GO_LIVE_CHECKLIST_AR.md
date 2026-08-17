@@ -11,6 +11,8 @@
 - [x] Production seed password guard.
 - [x] AI Assistant read-only.
 - [x] Audit Log للعمليات الحساسة.
+- [x] إعادة التحقق من active user والأدوار الحالية من قاعدة البيانات لكل protected request.
+- [x] Company/Plant scope على quality holds وtraceability وsettings وapproval decisions مع backfill migration.
 
 ## إلزامي قبل Production
 - [ ] `SESSION_SECRET` قوي وفريد.
@@ -35,3 +37,4 @@
 - [x] Mass balance integration test. يبقى UAT الميداني.
 - [x] Credit override approval/audit integration test. يبقى UAT الميداني.
 - [x] Supplier concurrent overpayment rejection integration test. يبقى UAT الميداني.
+- [x] Live user deactivation وquality/settings plant isolation integration tests.

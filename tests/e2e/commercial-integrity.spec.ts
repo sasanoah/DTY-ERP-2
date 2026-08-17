@@ -116,13 +116,18 @@ test.describe('commercial transaction integrity', () => {
         orders: Array<{
           id: string;
           status: string;
-          lines: Array<{allocations: Array<{qtyKg: string | number}>}>;
+          lines: Array<{
+            allocations: Array<{finishedLotId: string; qtyKg: string | number}>;
+          }>;
         }>;
       }).orders.find((candidate) => candidate.id === order.id);
       expect(orderAfter?.status).toBe('ALLOCATED');
       const allocated = orderAfter!.lines.flatMap((line) => line.allocations)
         .reduce((total, allocation) => total + Number(allocation.qtyKg), 0);
       expect(allocated).toBe(80);
+      const allocatedFromNewLot = orderAfter!.lines.flatMap((line) => line.allocations)
+        .filter((allocation) => allocation.finishedLotId === finishedLot.id)
+        .reduce((total, allocation) => total + Number(allocation.qtyKg), 0);
 
       await login(page, 'owner');
       const finishedResponse = await page.request.get('/api/inventory/finished');
@@ -130,8 +135,8 @@ test.describe('commercial transaction integrity', () => {
       const finishedAfter = ((await finishedResponse.json()) as {
         lots: Array<{id: string; reservedQtyKg: string | number; freeQtyKg: number}>;
       }).lots.find((candidate) => candidate.id === finishedLot.id);
-      expect(Number(finishedAfter?.reservedQtyKg)).toBe(80);
-      expect(Number(finishedAfter?.freeQtyKg)).toBe(18);
+      expect(Number(finishedAfter?.reservedQtyKg)).toBe(allocatedFromNewLot);
+      expect(Number(finishedAfter?.freeQtyKg)).toBe(98 - allocatedFromNewLot);
     } finally {
       if (runId && !completed) {
         await page.request.post(`/api/production/runs/${runId}/complete`, {

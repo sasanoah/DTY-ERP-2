@@ -184,10 +184,15 @@ test.describe('production security and RBAC boundaries', () => {
     expect(holdsResponse.status()).toBe(200);
     expect(((await holdsResponse.json()) as {holds: Array<{id: string}>}).holds)
       .toContainEqual(expect.objectContaining({id: created.id}));
-    const release = await page.request.post(`/api/quality/holds/${created.id}/disposition`, {
-      data: {disposition: 'RELEASED', note: 'إغلاق اختبار النطاق'},
-    });
-    expect(release.status()).toBe(200);
+    const releases = await Promise.all([
+      page.request.post(`/api/quality/holds/${created.id}/disposition`, {
+        data: {disposition: 'RELEASED', note: 'إغلاق اختبار النطاق'},
+      }),
+      page.request.post(`/api/quality/holds/${created.id}/disposition`, {
+        data: {disposition: 'REJECTED', note: 'طلب متزامن يجب رفضه'},
+      }),
+    ]);
+    expect(releases.map((response) => response.status()).sort()).toEqual([200, 409]);
   });
 
   test('cross-origin writes are rejected before route execution', async ({request}) => {

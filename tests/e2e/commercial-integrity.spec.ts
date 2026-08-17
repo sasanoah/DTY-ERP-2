@@ -316,10 +316,12 @@ test.describe('commercial transaction integrity', () => {
     expect(approvalId).toBeTruthy();
 
     await login(page, 'owner');
-    const overrideResponse = await page.request.post(
-      `/api/sales/orders/${created.order.id}/credit-override`,
-    );
-    expect(overrideResponse.status()).toBe(200);
+    const overrideResponses = await Promise.all([
+      page.request.post(`/api/sales/orders/${created.order.id}/credit-override`),
+      page.request.post(`/api/sales/orders/${created.order.id}/credit-override`),
+    ]);
+    expect(overrideResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
+    const overrideResponse = overrideResponses.find((response) => response.status() === 200)!;
     expect((await overrideResponse.json()).order.creditStatus).toBe('OVERRIDE');
 
     const approvalsResponse = await page.request.get('/api/approvals?status=ALL');

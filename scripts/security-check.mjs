@@ -12,14 +12,14 @@ const criticalScope={
  'src/app/api/production/runs/start/route.ts':['shift.findFirst','warehouse:{plantId:s.plantId}','BOM'],
  'src/app/api/inventory/movements/route.ts':['warehouse:{plantId:s.plantId}','inventory.count'],
  'src/app/api/sales/orders/[id]/allocate/route.ts':['plantId:s.plantId','productionRun:{productionOrder:{machine:{plantId:s.plantId'],
- 'src/app/api/sales/orders/[id]/confirm/route.ts':['findFirst','plantId:s.plantId','companyId:s.companyId'],
+ 'src/app/api/sales/orders/[id]/confirm/route.ts':['findFirst','plantId: session.plantId','companyId: session.companyId'],
  'src/app/api/sales/orders/[id]/dispatch/route.ts':['plantId:s.plantId','updateMany','qcStatus:\'RELEASED\''],
  'src/app/api/finance/collections/route.ts':['customer:{companyId:s.companyId}'],
  'src/app/api/finance/payables/payments/route.ts':['companyId:s.companyId','updateMany','paidAmount:{increment'],
  'src/app/api/quality/holds/route.ts':['requireScopedQualityReference','scopedQualityHoldWhere','companyId:s.companyId','plantId:s.plantId'],
- 'src/app/api/approvals/[id]/decide/route.ts':['findFirst','companyId:s.companyId','plantId:s.plantId'],
+ 'src/app/api/approvals/[id]/decide/route.ts':['findFirst','companyId: session.companyId','plantId: session.plantId'],
  'src/app/api/settings/route.ts':['plantId!==s.plantId','companyId:s.companyId'],
- 'src/app/api/procurement/orders/[id]/approve/route.ts':['plantId:s.plantId','supplier:{companyId:s.companyId}'],
+ 'src/app/api/procurement/orders/[id]/approve/route.ts':['plantId: session.plantId','supplier: {companyId: session.companyId}'],
  'src/app/api/quality/holds/[id]/disposition/route.ts':['warehouse:{plantId:s.plantId}','product:{companyId:s.companyId}'],
  'src/app/api/master-data/[entity]/route.ts':['companyId:s.companyId','plantId:s.plantId']
 };
@@ -27,6 +27,16 @@ for(const [file,markers] of Object.entries(criticalScope)){const s=read(file);fo
 const traceability=read('src/app/api/traceability/lot/[lotNo]/route.ts');for(const marker of ['findFirst','warehouse:{plantId:s.plantId}','material:{companyId:s.companyId}','product:{companyId:s.companyId'])if(!traceability.includes(marker))issues.push(`Traceability scope marker missing: ${marker}`);checks.push('traceability-tenant-isolation','quality-hold-tenant-isolation','settings-plant-isolation','approval-tenant-isolation');
 const documentNumbers=read('src/lib/document-number.ts');for(const marker of ['documentSequence.upsert','value: {increment: 1}','randomUUID'])if(!documentNumbers.includes(marker))issues.push(`Atomic document-number marker missing: ${marker}`);checks.push('atomic-document-number-sequences');
 const planConversion=read('src/app/api/production/plans/[id]/action/route.ts');for(const marker of ['productionPlan.updateMany','nextProductionOrderNo(tx)',"data: {status: 'CONVERTED'}"])if(!planConversion.includes(marker))issues.push(`Production-plan conversion claim marker missing: ${marker}`);const quotationConversion=read('src/app/api/sales/quotations/[id]/convert/route.ts');const rfqConversion=read('src/app/api/procurement/rfq/[id]/convert/route.ts');const rfqQuotes=read('src/app/api/procurement/rfq/quotes/route.ts');const invoicePosting=read('src/app/api/sales/orders/[id]/invoice/route.ts');const dispatchPosting=read('src/app/api/sales/orders/[id]/dispatch/route.ts');for(const [name,source,markers] of [['quotation',quotationConversion,['salesQuotation.updateMany','nextSalesOrderNo(tx)']],['rfq',rfqConversion,['rfq.updateMany','nextPurchaseOrderNo(tx)']],['rfq quote',rfqQuotes,['rfq.updateMany',"data: {status: 'SENT'}"]],['invoice',invoicePosting,['salesOrder.updateMany','nextInvoiceNo(tx)']],['dispatch',dispatchPosting,['salesOrder.updateMany','nextDeliveryNo(tx)']]])for(const marker of markers)if(!source.includes(marker))issues.push(`Atomic ${name} workflow marker missing: ${marker}`);checks.push('atomic-workflow-transition-claims');
+const operationalClaims={
+ 'production run start':['src/app/api/production/runs/start/route.ts',['machine.updateMany']],
+ 'production run completion':['src/app/api/production/runs/[id]/complete/route.ts',['productionRun.updateMany','findUniqueOrThrow']],
+ 'downtime':['src/app/api/production/downtime/route.ts',['productionRun.updateMany','downtimeEvent.updateMany']],
+ 'maintenance completion':['src/app/api/maintenance/orders/[id]/complete/route.ts',['maintenanceOrder.updateMany','findUniqueOrThrow']],
+ 'stock count':['src/app/api/inventory/counts/[id]/action/route.ts',['stockCount.updateMany','findUniqueOrThrow']],
+ 'quality disposition':['src/app/api/quality/holds/[id]/disposition/route.ts',['qualityHold.updateMany','findUniqueOrThrow']],
+ 'approval decision':['src/app/api/approvals/[id]/decide/route.ts',['approvalRequest.updateMany','salesOrder.updateMany','purchaseOrder.updateMany']],
+ 'credit override':['src/app/api/sales/orders/[id]/credit-override/route.ts',['salesOrder.updateMany','approvalRequest.updateMany']],
+};for(const [name,[file,markers]] of Object.entries(operationalClaims)){const source=read(file);for(const marker of markers)if(!source.includes(marker))issues.push(`Atomic ${name} marker missing: ${marker}`)}checks.push('atomic-operational-posting-claims');
 const integrations=read('src/lib/integrations.ts');for(const marker of ["status:'PROCESSING'",'lockedAt','updateMany','scopeWhere(scope)'])if(!integrations.includes(marker))issues.push(`Integration dispatch marker missing: ${marker}`);const outbox=read('src/app/api/integrations/outbox/dispatch/route.ts');for(const marker of ['companyId:auth.session.companyId','processing','dispatchIntegrationEvents(prisma,25,{...scoped,eventId})'])if(!outbox.includes(marker))issues.push(`Integration route scope marker missing: ${marker}`);checks.push('leased-integration-event-claims','integration-event-tenant-isolation');
 const adjustments=read('src/app/api/analytics/customers/adjustments/route.ts');for(const marker of ['customerId:d.customerId','plantId:s.plantId','customer:{companyId:s.companyId}'])if(!adjustments.includes(marker))issues.push(`Customer adjustment scope marker missing: ${marker}`);checks.push('customer-adjustment-reference-isolation');
 const apiRoot=new URL('src/app/api',root).pathname;const writeRoutes=[];function routes(d){for(const f of fs.readdirSync(d)){const p=path.join(d,f),st=fs.statSync(p);if(st.isDirectory())routes(p);else if(f==='route.ts'){const s=fs.readFileSync(p,'utf8');if(/export async function (POST|PUT|PATCH|DELETE)/.test(s))writeRoutes.push([path.relative(base,p),s])}}}routes(apiRoot);

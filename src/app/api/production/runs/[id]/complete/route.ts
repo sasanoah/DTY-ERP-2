@@ -15,9 +15,11 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
       const run=await tx.productionRun.findFirst({where:{id,productionOrder:{machine:{plantId:s.plantId},product:{companyId:s.companyId}}},include:{productionOrder:{include:{product:true,machine:true}}}});
       if(!run)throw Object.assign(new Error('التشغيل غير موجود داخل المصنع'),{status:404});
       if(run.status!=='OPEN')throw Object.assign(new Error('التشغيل مغلق بالفعل'),{status:409});
-      const openDowntime=await tx.downtimeEvent.findFirst({where:{productionRunId:id,endTime:null}});if(openDowntime)throw Object.assign(new Error('يوجد توقف مفتوح؛ أغلق التوقف قبل إنهاء الوردية'),{status:409});
       const input=Number(run.inputKg);const balance=massBalance(input,d.gradeAKg,d.gradeBKg,d.wasteKg);if(!balance.ok)throw Object.assign(new Error(`ميزان الكتلة غير متزن. الفرق ${balance.difference.toFixed(1)} كجم`),{status:409});
-      const closed=await tx.productionRun.update({where:{id},data:{gradeAKg:d.gradeAKg,gradeBKg:d.gradeBKg,wasteKg:d.wasteKg,electricityKwh:d.electricityKwh,downtimeMin:Math.max(run.downtimeMin,d.downtimeMin),endTime:new Date(),status:'COMPLETED'}});
+      const claimed=await tx.productionRun.updateMany({where:{id,status:'OPEN'},data:{gradeAKg:d.gradeAKg,gradeBKg:d.gradeBKg,wasteKg:d.wasteKg,electricityKwh:d.electricityKwh,downtimeMin:Math.max(run.downtimeMin,d.downtimeMin),endTime:new Date(),status:'COMPLETED'}});
+      if(claimed.count!==1)throw Object.assign(new Error('التشغيل مغلق بالفعل'),{status:409});
+      const openDowntime=await tx.downtimeEvent.findFirst({where:{productionRunId:id,endTime:null}});if(openDowntime)throw Object.assign(new Error('يوجد توقف مفتوح؛ أغلق التوقف قبل إنهاء الوردية'),{status:409});
+      const closed=await tx.productionRun.findUniqueOrThrow({where:{id}});
       const lots:unknown[]=[];
       if(d.gradeAKg>0)lots.push(await tx.finishedLot.create({data:{productionRunId:id,productId:run.productionOrder.productId,lotNo:finishedLotNo(run.productionOrder.product.code,run.productionOrder.machine.code),grade:'A',qtyKg:d.gradeAKg,availableQtyKg:d.gradeAKg,qcStatus:'PENDING'}}));
       if(d.gradeBKg>0)lots.push(await tx.finishedLot.create({data:{productionRunId:id,productId:run.productionOrder.productId,lotNo:finishedLotNo(run.productionOrder.product.code,run.productionOrder.machine.code)+'-B',grade:'B',qtyKg:d.gradeBKg,availableQtyKg:d.gradeBKg,qcStatus:'PENDING'}}));

@@ -18,6 +18,32 @@ async function adjustBalance(page: Page, lotId: string, qtyKg: number, refId: st
 }
 
 test.describe('operational posting integrity', () => {
+  test('maintenance orders close exactly once under competing requests', async ({page}) => {
+    await login(page, 'maintenance');
+    const contextResponse = await page.request.get('/api/maintenance/context');
+    expect(contextResponse.status()).toBe(200);
+    const machine = ((await contextResponse.json()) as {machines: Array<{id: string}>}).machines[0];
+    expect(machine).toBeTruthy();
+    const createResponse = await page.request.post('/api/maintenance/orders', {
+      data: {machineId: machine.id, type: 'E2E_CONCURRENCY', priority: 'NORMAL'},
+    });
+    expect(createResponse.status()).toBe(201);
+    const order = ((await createResponse.json()) as {order: {id: string}}).order;
+    const payload = {rootCause: 'اختبار الإغلاق المتزامن', laborHours: 1, externalCost: 0, spares: []};
+    const closures = await Promise.all([
+      page.request.post(`/api/maintenance/orders/${order.id}/complete`, {data: payload}),
+      page.request.post(`/api/maintenance/orders/${order.id}/complete`, {data: payload}),
+    ]);
+    expect(closures.map((response) => response.status()).sort()).toEqual([200, 409]);
+    const ordersResponse = await page.request.get('/api/maintenance/orders');
+    expect(ordersResponse.status()).toBe(200);
+    const closed = ((await ordersResponse.json()) as {
+      orders: Array<{id: string; status: string; spares: unknown[]}>;
+    }).orders.find((candidate) => candidate.id === order.id);
+    expect(closed).toMatchObject({status: 'CLOSED'});
+    expect(closed?.spares).toHaveLength(0);
+  });
+
   test('competing plan conversions claim workflows once and allocate unique order numbers', async ({page}) => {
     await login(page, 'prod_mgr');
     const contextResponse = await page.request.get('/api/production/plans');
@@ -127,25 +153,24 @@ test.describe('operational posting integrity', () => {
       };
       expect(listed.counts.find((count) => count.id === created.count.id)?.status).toBe('COUNTING');
 
-      const submitResponse = await page.request.post(
-        `/api/inventory/counts/${created.count.id}/action`,
-        {
-          data: {
-            action: 'SUBMIT',
-            lines: created.count.lines.map((line) => ({
-              lineId: line.id,
-              countedQtyKg: Number(line.systemQtyKg),
-            })),
-          },
-        },
-      );
-      expect(submitResponse.status()).toBe(200);
+      const submitPayload = {
+        action: 'SUBMIT',
+        lines: created.count.lines.map((line) => ({
+          lineId: line.id,
+          countedQtyKg: Number(line.systemQtyKg),
+        })),
+      };
+      const submitResponses = await Promise.all([
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: submitPayload}),
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: submitPayload}),
+      ]);
+      expect(submitResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
 
-      const approveResponse = await page.request.post(
-        `/api/inventory/counts/${created.count.id}/action`,
-        {data: {action: 'APPROVE'}},
-      );
-      expect(approveResponse.status()).toBe(200);
+      const approveResponses = await Promise.all([
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: {action: 'APPROVE'}}),
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: {action: 'APPROVE'}}),
+      ]);
+      expect(approveResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
 
       const issueResponse = await page.request.post('/api/inventory/movements', {
         data: {lotId: lot!.id, movementType: 'ISSUE', qtyKg: 1, refType: 'E2E', refId},
@@ -159,6 +184,14 @@ test.describe('operational posting integrity', () => {
       );
       expect(postResponse.status()).toBe(409);
       expect((await postResponse.json()).error).toContain('تغير رصيد');
+
+      await adjustBalance(page, lot!.id, originalBalance, `${refId}-RESTORE`);
+      stockChanged = false;
+      const postingResponses = await Promise.all([
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: {action: 'POST'}}),
+        page.request.post(`/api/inventory/counts/${created.count.id}/action`, {data: {action: 'POST'}}),
+      ]);
+      expect(postingResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
     } finally {
       if (stockChanged) await adjustBalance(page, lot!.id, originalBalance, `${refId}-RESTORE`);
     }
@@ -186,16 +219,18 @@ test.describe('operational posting integrity', () => {
     let completed = false;
 
     try {
-      const startResponse = await page.request.post('/api/production/runs/start', {
-        data: {
-          productionOrderId: order!.id,
-          shiftId: context.shifts[0].id,
-          poyLotId: lot!.id,
-          poyIssueKg: 100,
-        },
-      });
-      expect(startResponse.status()).toBe(201);
-      const started = (await startResponse.json()) as {run: {id: string}};
+      const startPayload = {
+        productionOrderId: order!.id,
+        shiftId: context.shifts[0].id,
+        poyLotId: lot!.id,
+        poyIssueKg: 100,
+      };
+      const startResponses = await Promise.all([
+        page.request.post('/api/production/runs/start', {data: startPayload}),
+        page.request.post('/api/production/runs/start', {data: startPayload}),
+      ]);
+      expect(startResponses.map((response) => response.status()).sort()).toEqual([201, 409]);
+      const started = (await startResponses.find((response) => response.status() === 201)!.json()) as {run: {id: string}};
       runId = started.run.id;
 
       const invalidClose = await page.request.post(`/api/production/runs/${runId}/complete`, {
@@ -210,11 +245,19 @@ test.describe('operational posting integrity', () => {
       expect(afterRejectedClose.status()).toBe(200);
       expect((await afterRejectedClose.json()).openRun?.id).toBe(runId);
 
-      const validClose = await page.request.post(`/api/production/runs/${runId}/complete`, {
-        data: {gradeAKg: 98, gradeBKg: 0, wasteKg: 2, electricityKwh: 50, downtimeMin: 0},
-      });
-      expect(validClose.status()).toBe(200);
+      const closePayload = {gradeAKg: 98, gradeBKg: 0, wasteKg: 2, electricityKwh: 50, downtimeMin: 0};
+      const validClose = await Promise.all([
+        page.request.post(`/api/production/runs/${runId}/complete`, {data: closePayload}),
+        page.request.post(`/api/production/runs/${runId}/complete`, {data: closePayload}),
+      ]);
+      expect(validClose.map((response) => response.status()).sort()).toEqual([200, 409]);
       completed = true;
+      const finishedResponse = await page.request.get('/api/inventory/finished');
+      expect(finishedResponse.status()).toBe(200);
+      const finishedLots = ((await finishedResponse.json()) as {
+        lots: Array<{productionRun: {id: string}}>;
+      }).lots.filter((candidate) => candidate.productionRun.id === runId);
+      expect(finishedLots).toHaveLength(1);
     } finally {
       if (runId && !completed) {
         await page.request.post(`/api/production/runs/${runId}/complete`, {

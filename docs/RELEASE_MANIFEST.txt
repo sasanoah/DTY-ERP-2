@@ -14,7 +14,7 @@ UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
 Runtime-environment assertions: 3/3 passed
-PostgreSQL-backed Playwright tests: 26/26 passed
+PostgreSQL-backed Playwright tests: 27/27 passed
 Security check: passed
 Production dependency vulnerabilities: 0
 
@@ -29,6 +29,7 @@ RC.3 hardening:
 - tenant-scoped quality holds, traceability, settings and approval decisions
 - atomic database-backed document sequences and collision-resistant finished-lot suffixes
 - transaction-scoped sequences and atomic workflow claims for plan/RFQ/quotation conversion, dispatch and invoicing
+- atomic operational posting claims for runs, downtime, stock counts, maintenance, quality dispositions and approvals
 - leased, tenant-scoped integration outbox claims with stale-lease recovery
 - customer-adjustment sales-order ownership validation
 - POY/BOM/Shift validation on run start
@@ -37,7 +38,7 @@ RC.3 hardening:
 - fail-fast production runtime environment validation
 - dedicated Docker migrator and read-only/cap-drop runtime composition
 - transactional PostgreSQL backup/restore drill in CI
-- concurrent inventory/allocation/payment/document-number/workflow/outbox, credit-override audit, stock-count conflict, mass-balance, traceability, live user revocation, plant settings, quality scope, finance reference, auth and RBAC integration coverage
+- concurrent inventory/allocation/payment/document-number/workflow/operational-posting/outbox, credit-override audit, stock-count conflict, mass-balance, traceability, live user revocation, plant settings, quality scope, finance reference, auth and RBAC integration coverage
 
 Executed in this workspace:
 - node scripts/prisma-structure-check.mjs

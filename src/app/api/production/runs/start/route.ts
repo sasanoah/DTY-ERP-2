@@ -15,6 +15,8 @@ export async function POST(req:Request){
       });
       if(!order)throw Object.assign(new Error('أمر الإنتاج غير موجود داخل المصنع'),{status:404});
       if(!['RELEASED','RUNNING'].includes(order.status))throw Object.assign(new Error('أمر الإنتاج غير مفرج للتشغيل'),{status:409});
+      const machineLock=await tx.machine.updateMany({where:{id:order.machineId,plantId:s.plantId,status:order.machine.status},data:{status:order.machine.status}});
+      if(machineLock.count!==1)throw Object.assign(new Error('تغيرت حالة الماكينة أثناء بدء التشغيل'),{status:409});
       const shift=await tx.shift.findFirst({where:{id:d.shiftId,plantId:s.plantId}});
       if(!shift)throw Object.assign(new Error('الوردية غير صحيحة لهذا المصنع'),{status:400});
       const openMachineRun=await tx.productionRun.findFirst({where:{status:'OPEN',productionOrder:{machineId:order.machineId}}});

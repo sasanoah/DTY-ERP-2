@@ -20,9 +20,11 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
         if(!lot)throw Object.assign(new Error('Lot الجودة لا يخص هذا المصنع'),{status:404});
       }else throw Object.assign(new Error('نوع مرجع الجودة غير مدعوم'),{status:400});
       const qc=d.disposition==='RELEASED'||d.disposition==='B_GRADE'?'RELEASED':d.disposition==='REJECTED'?'REJECTED':'HOLD';
+      const claimed=await tx.qualityHold.updateMany({where:{id,status:{in:['OPEN','INVESTIGATING']}},data:{status:d.disposition,closedBy:s.userId,closedAt:new Date()}});
+      if(claimed.count!==1)throw Object.assign(new Error('تم إغلاق Hold بالفعل'),{status:409});
       if(h.refType==='INVENTORY_LOT')await tx.inventoryLot.update({where:{id:h.refId},data:{qcStatus:d.disposition==='B_GRADE'?'HOLD':qc}});
       if(h.refType==='FINISHED_LOT')await tx.finishedLot.update({where:{id:h.refId},data:{qcStatus:qc,...(d.disposition==='B_GRADE'?{grade:'B'}:{})}});
-      const updated=await tx.qualityHold.update({where:{id},data:{status:d.disposition,closedBy:s.userId,closedAt:new Date()}});
+      const updated=await tx.qualityHold.findUniqueOrThrow({where:{id}});
       await audit(tx,{userId:s.userId,entityType:h.refType,entityId:h.refId,action:`QUALITY_${d.disposition}`,after:{holdId:id,note:d.note}});return updated;
     });
     return Response.json({ok:true,hold});

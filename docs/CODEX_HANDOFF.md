@@ -3,7 +3,7 @@
 هذه الحزمة هي نقطة البداية الوحيدة. لا تعيد تصميم الـdomain model بدون سبب موثق.
 
 ## الحالة الحالية
-تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، واختبارات concurrent FG allocation وdocument numbering وworkflow claims (plan/RFQ/quotation/dispatch/invoice) وintegration outbox وcredit override audit وsupplier overpayment وlive user revocation وquality/settings isolation، وDraft PR. لا تعد هذه الخطوات.
+تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، واختبارات concurrent FG allocation وdocument numbering وworkflow/operational posting claims (plan/RFQ/quotation/dispatch/invoice/run/downtime/stock count/maintenance/quality/approvals) وintegration outbox وcredit override audit وsupplier overpayment وlive user revocation وquality/settings isolation، وDraft PR. لا تعد هذه الخطوات.
 
 ## المهمة التالية
 1. نشر immutable app/migrator images على Staging خلف HTTPS/WAF.

@@ -11,13 +11,15 @@ const criticalScope={
  'src/app/api/production/runs/start/route.ts':['shift.findFirst','warehouse:{plantId:s.plantId}','BOM'],
  'src/app/api/inventory/movements/route.ts':['warehouse:{plantId:s.plantId}','inventory.count'],
  'src/app/api/sales/orders/[id]/allocate/route.ts':['plantId:s.plantId','productionRun:{productionOrder:{machine:{plantId:s.plantId'],
+ 'src/app/api/sales/orders/[id]/confirm/route.ts':['findFirst','plantId:s.plantId','companyId:s.companyId'],
  'src/app/api/sales/orders/[id]/dispatch/route.ts':['plantId:s.plantId','updateMany','qcStatus:\'RELEASED\''],
  'src/app/api/finance/collections/route.ts':['customer:{companyId:s.companyId}'],
+ 'src/app/api/finance/payables/payments/route.ts':['companyId:s.companyId','updateMany','paidAmount:{increment'],
  'src/app/api/procurement/orders/[id]/approve/route.ts':['plantId:s.plantId','supplier:{companyId:s.companyId}'],
  'src/app/api/quality/holds/[id]/disposition/route.ts':['warehouse:{plantId:s.plantId}','product:{companyId:s.companyId}'],
  'src/app/api/master-data/[entity]/route.ts':['companyId:s.companyId','plantId:s.plantId']
 };
-for(const [file,markers] of Object.entries(criticalScope)){const s=read(file);for(const m of markers)if(!s.includes(m))issues.push(`Tenant/scope marker missing in ${file}: ${m}`)}checks.push('critical-write-tenant-isolation');
+for(const [file,markers] of Object.entries(criticalScope)){const s=read(file);for(const m of markers)if(!s.includes(m))issues.push(`Tenant/scope marker missing in ${file}: ${m}`)}checks.push('critical-write-tenant-isolation','sales-confirmation-tenant-isolation','atomic-supplier-payment-reservation');
 const apiRoot=new URL('src/app/api',root).pathname;const writeRoutes=[];function routes(d){for(const f of fs.readdirSync(d)){const p=path.join(d,f),st=fs.statSync(p);if(st.isDirectory())routes(p);else if(f==='route.ts'){const s=fs.readFileSync(p,'utf8');if(/export async function (POST|PUT|PATCH|DELETE)/.test(s))writeRoutes.push([path.relative(base,p),s])}}}routes(apiRoot);
 for(const [rel,s] of writeRoutes){if(rel.startsWith('src/app/api/auth/'))continue;if(!s.includes('requirePermission')&&!s.includes('requireUser'))issues.push(`Write route without auth helper: ${rel}`)}checks.push('write-routes-authenticated');
 const assistant=read('src/app/api/assistant/route.ts');if(/prisma\.[a-zA-Z]+\.(create|update|delete|upsert)\(/.test(assistant))issues.push('AI Assistant contains direct database write');checks.push('ai-assistant-read-only');

@@ -3,14 +3,13 @@
 هذه الحزمة هي نقطة البداية الوحيدة. لا تعيد تصميم الـdomain model بدون سبب موثق.
 
 ## الحالة الحالية
-تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، وDraft PR. لا تعد هذه الخطوات.
+تم إنجاز bootstrap وpackage lock وPrisma baseline/migrate، typecheck/build، PostgreSQL E2E، Docker hardening، runtime secret validation، backup/restore drill، واختبارات concurrent FG allocation وcredit override audit وsupplier overpayment، وDraft PR. لا تعد هذه الخطوات.
 
 ## المهمة التالية
 1. نشر immutable app/migrator images على Staging خلف HTTPS/WAF.
 2. ضبط managed secrets وprivate least-privilege PostgreSQL.
 3. تنفيذ encrypted backup/restore drill وتسجيل RPO/RTO.
-4. إكمال E2E لـconcurrent FG allocation، credit override audit، وsupplier overpayment.
-5. تنفيذ خمس ورديات Pilot reconciled وجمع التوقيعات.
+4. تنفيذ خمس ورديات Pilot reconciled وجمع التوقيعات.
 
 ## Critical E2E flows
 - Login + RBAC + اختيار Plant مصرح.

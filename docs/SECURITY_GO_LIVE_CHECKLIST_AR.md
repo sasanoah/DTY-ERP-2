@@ -31,7 +31,7 @@
 - [x] Lot traceability API integration test. يبقى UAT الميداني.
 - [x] PENDING/HOLD يمنع issue وتوجد guards للـallocation/dispatch. يبقى UAT الميداني.
 - [x] Stock count conflict integration test.
-- [x] Concurrent inventory issue integration tests. يبقى concurrent allocation UAT/test.
+- [x] Concurrent inventory issue وfinished-goods allocation integration tests. يبقى UAT الميداني.
 - [x] Mass balance integration test. يبقى UAT الميداني.
-- [ ] Credit override audit UAT.
-- [ ] Supplier overpayment rejection UAT.
+- [x] Credit override approval/audit integration test. يبقى UAT الميداني.
+- [x] Supplier concurrent overpayment rejection integration test. يبقى UAT الميداني.

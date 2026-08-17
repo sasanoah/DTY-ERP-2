@@ -40,3 +40,9 @@ test('requires strong integration secrets only when integrations are enabled', (
     INTERNAL_JOB_TOKEN: 'an-internal-token-that-is-long-enough',
   }), []);
 });
+
+test('rejects a weak optional login throttle secret', () => {
+  assert.deepEqual(runtimeEnvironmentErrors({...valid, LOGIN_THROTTLE_SECRET: 'short'}), [
+    'LOGIN_THROTTLE_SECRET must be a non-placeholder value of at least 32 characters when configured',
+  ]);
+});

@@ -29,6 +29,10 @@ export function runtimeEnvironmentErrors(env) {
   if (!env.SESSION_SECRET) errors.push('SESSION_SECRET is required');
   else if (env.SESSION_SECRET.length < MIN_SECRET_LENGTH || env.SESSION_SECRET.startsWith('replace-with-')) errors.push(`SESSION_SECRET must be a non-placeholder value of at least ${MIN_SECRET_LENGTH} characters`);
 
+  if (env.LOGIN_THROTTLE_SECRET && (env.LOGIN_THROTTLE_SECRET.length < MIN_SECRET_LENGTH || env.LOGIN_THROTTLE_SECRET.startsWith('replace-with-'))) {
+    errors.push(`LOGIN_THROTTLE_SECRET must be a non-placeholder value of at least ${MIN_SECRET_LENGTH} characters when configured`);
+  }
+
   if (env.INTERNAL_JOB_TOKEN && env.INTERNAL_JOB_TOKEN.length < MIN_SECRET_LENGTH) {
     errors.push(`INTERNAL_JOB_TOKEN must be at least ${MIN_SECRET_LENGTH} characters when configured`);
   }

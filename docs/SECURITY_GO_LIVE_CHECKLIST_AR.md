@@ -7,7 +7,8 @@
 - [x] Company/Plant checks على critical write flows.
 - [x] Same-origin blocking للـbrowser cross-origin writes.
 - [x] X-Content-Type-Options / X-Frame-Options / Referrer-Policy / Permissions-Policy.
-- [x] Basic in-process login rate limit.
+- [x] Database-backed distributed login rate limit مع atomic claims وhashed identifiers.
+- [x] Password timing equalization للحسابات غير الموجودة.
 - [x] Production seed password guard.
 - [x] AI Assistant read-only.
 - [x] Audit Log للعمليات الحساسة.
@@ -20,7 +21,7 @@
 - [x] Prisma validate/generate + clean baseline migration.
 - [x] Full semantic typecheck + Next build + E2E.
 - [ ] HTTPS/WAF/reverse proxy.
-- [ ] Distributed rate limit (Redis/Gateway) إذا أكثر من instance.
+- [x] Distributed rate limit مشترك بين كل instances عبر PostgreSQL. يبقى WAF edge limit مطلوبًا للحماية الشاملة.
 - [ ] MFA للإدارة العليا والمالية.
 - [ ] PostgreSQL private + least privilege DB user.
 - [x] Backup/restore drill آلي في CI. تشفير storage/KMS يضبط في بيئة النشر.

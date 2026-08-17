@@ -287,6 +287,16 @@ model User {
   createdAt               DateTime                 @default(now())
 }
 
+model LoginThrottle {
+  key             String    @id @db.Char(64)
+  attempts        Int       @default(1)
+  windowStartedAt DateTime  @default(now())
+  blockedUntil    DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@index([updatedAt])
+}
+
 model Role {
   id          String           @id @default(cuid())
   companyId   String

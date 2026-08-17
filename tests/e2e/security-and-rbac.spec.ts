@@ -55,6 +55,25 @@ test.describe('production security and RBAC boundaries', () => {
     await expect(page.getByRole('link', {name: 'أوامر البيع'})).toBeVisible();
   });
 
+  test('login throttling is atomic, shared, and returns retry guidance', async ({request}) => {
+    const username=`missing-rate-limit-${Date.now()}@example.test`;
+    const attempts=await Promise.all(Array.from({length:10},()=>request.post('/api/auth/login',{
+      data:{username,password:'definitely-invalid'},
+    })));
+    expect(attempts.filter((response)=>response.status()===429)).toHaveLength(1);
+    expect(attempts.filter((response)=>response.status()===401)).toHaveLength(9);
+
+    const blocked=await request.post('/api/auth/login',{
+      data:{username,password:'definitely-invalid'},
+    });
+    expect(blocked.status()).toBe(429);
+    expect(Number(blocked.headers()['retry-after'])).toBeGreaterThan(0);
+    expect(await blocked.json()).toMatchObject({
+      ok:false,
+      error:'محاولات دخول كثيرة. حاول لاحقًا',
+    });
+  });
+
   test('warehouse role sees inventory but cannot access sales APIs', async ({page}) => {
     const session = await login(page, 'warehouse');
     expect(session.user.roles).toContain('WAREHOUSE');

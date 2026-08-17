@@ -5,7 +5,7 @@
 - Multi-company / Multi-plant PostgreSQL-Prisma schema.
 - Authentication + Scrypt + signed HTTP-only sessions.
 - RBAC + Plant scope + Audit Log.
-- Same-origin write protection + secure headers + login rate limiting.
+- Same-origin write protection + secure headers + distributed database-backed login rate limiting.
 - Seed مصنع 2100: ست ماكينات وإجمالي 1,414 spindle.
 
 ## Full DTY Factory Scope
@@ -32,7 +32,7 @@
 - إضافة Docker migrator/runtime targets وproduction Compose بـread-only filesystem/cap-drop/readiness.
 
 ## QA الآلي
-- Structural validation ناجح: 72 Prisma model و69 API route و36 page.
+- Structural validation ناجح: 73 Prisma model و69 API route و36 page.
 - Security checker ناجح: 45 write routes مفحوصة.
 - Semantic TypeScript check وNext.js production build ناجحان.
 - PostgreSQL-backed security/operational Playwright suite ناجحة.

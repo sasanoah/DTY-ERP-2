@@ -7,7 +7,7 @@
     "nextProductionBuildPassed": true
   },
   "prisma": {
-    "models": 72,
+    "models": 73,
     "enums": 26,
     "missingTypeTargets": 0,
     "duplicateFields": 0,
@@ -21,8 +21,8 @@
   },
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
-    "runtimeEnvironment": {"passed": 3, "total": 3},
-    "postgresPlaywright": {"passed": 27, "total": 27}
+    "runtimeEnvironment": {"passed": 4, "total": 4},
+    "postgresPlaywright": {"passed": 28, "total": 28}
   },
   "securityCheck": {
     "passed": true,
@@ -34,7 +34,8 @@
       "production-seed-password-guard",
       "same-origin-write-protection",
       "secure-response-headers",
-      "login-rate-limit",
+      "distributed-login-rate-limit",
+      "login-timing-equalization",
       "plant-selection-authorization",
       "live-user-session-authorization",
       "company-scoped-permission-resolution",

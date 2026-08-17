@@ -18,6 +18,7 @@ npm run release:gate
 
 - `DATABASE_URL` — PostgreSQL user مخصص بأقل صلاحيات مطلوبة.
 - `SESSION_SECRET` — قيمة عشوائية فريدة 32+ حرفًا.
+- `LOGIN_THROTTLE_SECRET` — قيمة عشوائية مستقلة 32+ حرفًا لحماية hashes؛ يستخدم `SESSION_SECRET` إذا لم تضبط.
 - `INTERNAL_JOB_TOKEN` — 32+ حرفًا عند استخدام job خارجي.
 - `INTEGRATION_WEBHOOK_SECRET` — 32+ حرفًا وإلزامي عند ضبط `N8N_WEBHOOK_URL`.
 - `OPENAI_API_KEY` اختياري.
@@ -54,7 +55,7 @@ RESTORE_CONFIRM=YES DATABASE_URL='...restore-drill...' npm run db:restore -- /se
 ## 8. Security Gate
 - HTTPS فقط وPostgreSQL private network.
 - تغيير كل كلمات مستخدمي Seed ومراجعة RBAC/Plant.
-- Reverse-proxy/distributed rate limit عند تعدد instances.
+- Database-backed login throttle يعمل بين instances؛ أضف WAF/edge rate limit لمنع الإساءة قبل وصولها للتطبيق.
 - Backup storage مشفر وrestore test على Staging.
 - MFA للإدارة/المالية عند طبقة الهوية أو reverse proxy إلى أن يضاف Native MFA.
 - AI Assistant يظل Read-only.

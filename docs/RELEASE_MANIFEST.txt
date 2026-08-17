@@ -7,20 +7,21 @@ Plant seed: 2100
 Machines seed: 6
 Total spindles: 1414
 TypeScript/TSX files checked: 135
-Prisma models: 72
+Prisma models: 73
 Prisma enums: 26
 API route files: 69
 UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
-Runtime-environment assertions: 3/3 passed
-PostgreSQL-backed Playwright tests: 27/27 passed
+Runtime-environment assertions: 4/4 passed
+PostgreSQL-backed Playwright tests: 28/28 passed
 Security check: passed
 Production dependency vulnerabilities: 0
 
 RC.3 hardening:
 - company/plant ownership checks on critical writes
-- login plant authorization + basic rate limit
+- login plant authorization + atomic database-backed distributed rate limit
+- hashed throttle identifiers + nonexistent-account password timing equalization
 - same-origin browser write protection + security headers
 - race-safe finished goods allocation/dispatch guards
 - atomic supplier-payment balance reservation

@@ -10,7 +10,8 @@
 - [ ] Review approval على Draft PR.
 - [ ] إنشاء secrets فريدة وتخزينها في secret manager.
 - [ ] PostgreSQL private/least-privilege وencrypted backup storage.
-- [ ] HTTPS reverse proxy/WAF وdistributed rate limiting عند تعدد instances.
+- [x] Database-backed distributed login rate limiting داخل التطبيق.
+- [ ] HTTPS reverse proxy/WAF مع edge rate limiting.
 - [ ] تثبيت immutable app/migrator image digests وimage digest السابق للـrollback.
 - [ ] أخذ pre-deploy backup وإثات restore على Staging.
 

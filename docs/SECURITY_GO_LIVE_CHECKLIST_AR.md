@@ -13,6 +13,7 @@
 - [x] AI Assistant read-only.
 - [x] Audit Log للعمليات الحساسة.
 - [x] إعادة التحقق من active user والأدوار الحالية من قاعدة البيانات لكل protected request.
+- [x] Password reset يرفع session version ويلغي كل الجلسات السابقة فورًا عبر جميع instances.
 - [x] Company/Plant scope على quality holds وtraceability وsettings وapproval decisions مع backfill migration.
 
 ## إلزامي قبل Production

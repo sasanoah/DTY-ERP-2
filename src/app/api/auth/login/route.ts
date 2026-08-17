@@ -30,7 +30,7 @@ export async function POST(req:Request){
     if(!plantId&&roles.includes('OWNER'))plantId=(await prisma.plant.findFirst({where:{companyId:user.companyId,active:true},orderBy:{code:'asc'}}))?.id;
   }
   await clearRate(username);
-  const token=createSessionToken({userId:user.id,companyId:user.companyId,plantId,username:user.username,roles});
+  const token=createSessionToken({userId:user.id,companyId:user.companyId,plantId,username:user.username,roles,sessionVersion:user.sessionVersion});
   const res=NextResponse.json({ok:true,user:{id:user.id,name:user.fullNameAr,username:user.username,roles,plantId}});
   res.cookies.set(sessionCookieName,token,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',path:'/',maxAge:60*60*12});
   return res;

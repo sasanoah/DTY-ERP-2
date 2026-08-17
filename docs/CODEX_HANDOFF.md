@@ -25,7 +25,7 @@
 ## Security review المطلوبة من Codex
 - تحقق company/plant isolation على كل GET/WRITE، وليس فقط critical routes.
 - CSRF/same-origin strategy الحالية + reverse proxy configuration.
-- إضافة central session-version revocation فقط إذا تطلب التشغيل إبطال كل الجلسات قبل انتهاء صلاحيتها؛ تعطيل المستخدم أو تغيير أدواره يطبق فورًا حاليًا.
+- Central session-version revocation مطبق: تغيير كلمة المرور يلغي كل الجلسات السابقة، وتعطيل المستخدم أو تغيير أدواره يطبق فورًا أيضًا.
 - WAF/edge rate limit أمام database-backed login throttle الموجود، ومراقبة محاولات الدخول الفاشلة.
 - Security headers/CSP مناسب لـNext.
 - Central log aggregation/alerting وربط safe `errorId` الموجود بمنصة الرصد.

@@ -34,6 +34,8 @@ docker compose --env-file .env.production -f compose.production.yml up -d
 
 خدمة `migrate` تنفذ `prisma migrate deploy`، وتبدأ `app` فقط بعد نجاحها. التطبيق يرتبط بـ`127.0.0.1:${APP_PORT:-3000}` خلف الـreverse proxy.
 
+Migration الـsession version متوافقة مع البيانات، لكنها تلغي cookies الصادرة قبل هذا الإصدار. أخطر المستخدمين أنهم سيحتاجون تسجيل الدخول مرة أخرى بعد النشر.
+
 ## 5. Smoke checks
 ```bash
 curl --fail http://127.0.0.1:3000/api/health

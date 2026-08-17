@@ -1,11 +1,17 @@
-# Prisma migrations — RC.3
+# Prisma migrations — DTY ERP V1.0 RC.3
 
-لا توجد baseline migration معتمدة داخل الحزمة لأن بيئة الإنشاء لم تستطع تشغيل Prisma.
+هذا المجلد هو سلسلة migrations المعتمدة للنشر بالترتيب التالي:
 
-في أول Codex/CI workspace متصل:
-1. شغّل `npm install` ثم `npx prisma format && npx prisma validate && npx prisma generate`.
-2. استخدم PostgreSQL staging فارغًا.
-3. شغّل `npx prisma migrate dev --name baseline` لتوليد baseline من `schema.prisma` الحالية.
-4. راجع migration SQL، شغّل الاختبارات، ثم commit مجلد baseline الناتج مع `package-lock.json`.
+1. `000000000000_baseline` — schema الأساسية الكاملة.
+2. `20260817172000_scope_quality_holds` — company/plant scope للجودة مع backfill.
+3. `20260817180000_harden_sequences_and_outbox` — document sequences وoutbox leases.
+4. `20260817193000_distributed_login_throttle` — distributed login throttling.
+5. `20260817200000_password_reset_session_revocation` — session versioning وإبطال الجلسات عند تغيير كلمة المرور.
 
-المجلد `prisma/legacy-migrations/` يحتوي migrations additive قديمة للمرجعية أو لترقية قواعد تجريبية قديمة فقط، ولا يجب تطبيقها على قاعدة جديدة.
+على Staging وProduction شغّل فقط:
+
+```bash
+npx prisma migrate deploy
+```
+
+لا تستخدم `prisma migrate dev` أو `prisma db push` في بيئات النشر. المجلد `prisma/legacy-migrations/` يحتوي SQL قديمًا للمرجعية أو لترقية قواعد تجريبية سابقة فقط، ولا يدخل في سلسلة `migrate deploy` الحالية.

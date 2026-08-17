@@ -8,6 +8,7 @@ export async function requireUser(){
   if(!session) throw Object.assign(new Error('UNAUTHORIZED'),{status:401});
   const user=await prisma.user.findFirst({where:{id:session.userId,companyId:session.companyId,active:true},include:{roles:{where:{role:{companyId:session.companyId},...(session.plantId?{OR:[{plantId:session.plantId},{plantId:null}]}:{plantId:null})},include:{role:true}}}});
   if(!user)throw Object.assign(new Error('UNAUTHORIZED'),{status:401});
+  if(user.sessionVersion!==session.sessionVersion)throw Object.assign(new Error('UNAUTHORIZED'),{status:401});
   const roles=[...new Set(user.roles.map(x=>x.role.code))];
   if(!roles.length)throw Object.assign(new Error('FORBIDDEN'),{status:403});
   return {...session,roles};

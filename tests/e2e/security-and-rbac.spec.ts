@@ -160,6 +160,72 @@ test.describe('production security and RBAC boundaries', () => {
     }
   });
 
+  test('password resets revoke every previously issued user session', async ({browser}) => {
+    const ownerContext=await browser.newContext();
+    const warehouseContext=await browser.newContext();
+    const ownerPage=await ownerContext.newPage();
+    const warehousePage=await warehouseContext.newPage();
+    await login(ownerPage,'owner');
+    await login(warehousePage,'warehouse');
+
+    const usersResponse=await ownerPage.request.get('/api/admin/users');
+    expect(usersResponse.status()).toBe(200);
+    const warehouse=((await usersResponse.json()) as {
+      users:Array<{
+        id:string;
+        username:string;
+        fullNameAr:string;
+        mobile:string|null;
+        roles:Array<{role:{code:string};plantId:string|null}>;
+      }>;
+    }).users.find((candidate)=>candidate.username==='warehouse');
+    expect(warehouse).toBeTruthy();
+    const roleCodes=[...new Set(warehouse!.roles.map((assignment)=>assignment.role.code))];
+    const plantId=warehouse!.roles.find((assignment)=>assignment.plantId)?.plantId;
+    expect(plantId).toBeTruthy();
+    const updatePayload={
+      id:warehouse!.id,
+      username:warehouse!.username,
+      fullNameAr:warehouse!.fullNameAr,
+      ...(warehouse!.mobile?{mobile:warehouse!.mobile}:{}),
+      active:true,
+      roleCodes,
+      plantId,
+    };
+    const temporaryPassword='temporary-warehouse-password';
+
+    try{
+      const reset=await ownerPage.request.post('/api/admin/users',{
+        data:{...updatePayload,password:temporaryPassword},
+      });
+      expect(reset.status()).toBe(200);
+      const staleSession=await warehousePage.request.get('/api/inventory/lots');
+      expect(staleSession.status()).toBe(401);
+      expect(await staleSession.json()).toMatchObject({ok:false,error:'UNAUTHORIZED'});
+
+      const oldPassword=await warehousePage.request.post('/api/auth/login',{
+        data:{username:'warehouse',password:demoPassword},
+      });
+      expect(oldPassword.status()).toBe(401);
+      const replacementLogin=await warehousePage.request.post('/api/auth/login',{
+        data:{username:'warehouse',password:temporaryPassword},
+      });
+      expect(replacementLogin.status()).toBe(200);
+      expect((await warehousePage.request.get('/api/inventory/lots')).status()).toBe(200);
+    }finally{
+      const restore=await ownerPage.request.post('/api/admin/users',{
+        data:{...updatePayload,password:demoPassword},
+      });
+      expect(restore.status()).toBe(200);
+      expect((await warehousePage.request.get('/api/inventory/lots')).status()).toBe(401);
+      expect((await warehousePage.request.post('/api/auth/login',{
+        data:{username:'warehouse',password:demoPassword},
+      })).status()).toBe(200);
+      await ownerContext.close();
+      await warehouseContext.close();
+    }
+  });
+
   test('validation errors are client errors and settings cannot target another plant', async ({page}) => {
     await login(page, 'owner');
     const invalid = await page.request.post('/api/settings', {data: {key: 'x'}});

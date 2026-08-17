@@ -269,6 +269,7 @@ model User {
   fullNameAr              String
   mobile                  String?
   passwordHash            String
+  sessionVersion          Int                      @default(0)
   language                String                   @default("ar")
   active                  Boolean                  @default(true)
   roles                   UserRole[]

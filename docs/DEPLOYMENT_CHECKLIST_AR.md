@@ -13,6 +13,7 @@
 - [x] Database-backed distributed login rate limiting داخل التطبيق.
 - [ ] HTTPS reverse proxy/WAF مع edge rate limiting.
 - [ ] تثبيت immutable app/migrator image digests وimage digest السابق للـrollback.
+- [ ] إخطار المستخدمين بإعادة تسجيل الدخول مرة واحدة بعد session-version migration.
 - [ ] أخذ pre-deploy backup وإثات restore على Staging.
 
 ## Staging

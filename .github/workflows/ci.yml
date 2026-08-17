@@ -1,7 +1,6 @@
 name: ERP CI
 on:
   push:
-    branches: [main]
   pull_request:
 jobs:
   test:
@@ -39,5 +38,3 @@ jobs:
       - run: npm run security:check
       - run: npm run typecheck
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e

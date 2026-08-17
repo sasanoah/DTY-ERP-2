@@ -10,7 +10,8 @@ export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
       const d=stockCountSubmitSchema.parse(raw);
       const count=await prisma.stockCount.findUnique({where:{id},include:{lines:true}}); if(!count||count.plantId!==s.plantId)throw Object.assign(new Error('الجرد غير موجود'),{status:404});
       if(count.status!=='COUNTING')throw Object.assign(new Error('الجرد ليس في مرحلة العد'),{status:409});
-      const allowed=new Set(count.lines.map(x=>x.id)); for(const l of d.lines)if(!allowed.has(l.lineId))throw Object.assign(new Error('سطر جرد غير صحيح'),{status:400});
+      const allowed=new Set(count.lines.map(x=>x.id)); const submitted=new Set(d.lines.map(x=>x.lineId));
+      if(submitted.size!==d.lines.length||submitted.size!==allowed.size||d.lines.some(l=>!allowed.has(l.lineId)))throw Object.assign(new Error('يجب إدخال كل سطور الجرد مرة واحدة'),{status:400});
       await prisma.$transaction(d.lines.map(l=>prisma.stockCountLine.update({where:{id:l.lineId},data:{countedQtyKg:l.countedQtyKg,varianceKg:{set:l.countedQtyKg-Number(count.lines.find(x=>x.id===l.lineId)!.systemQtyKg)},note:l.note}})));
       const u=await prisma.stockCount.update({where:{id},data:{status:'SUBMITTED',countedAt:new Date()}}); await audit(prisma,{userId:s.userId,entityType:'StockCount',entityId:id,action:'SUBMIT'}); return Response.json({ok:true,count:u});
     }

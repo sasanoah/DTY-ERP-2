@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dty
+      POSTGRES_PASSWORD: dty
+      POSTGRES_DB: dty_erp
+    ports:
+      - "5432:5432"
+    volumes:
+      - dty_pgdata:/var/lib/postgresql/data
+volumes:
+  dty_pgdata:

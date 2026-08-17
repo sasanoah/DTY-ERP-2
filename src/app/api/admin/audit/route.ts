@@ -1,0 +1,2 @@
+import {prisma} from '@/lib/prisma';import {requirePermission,apiError} from '@/lib/rbac';
+export async function GET(req:Request){try{const s=await requirePermission('audit.read');const u=new URL(req.url);const entityType=u.searchParams.get('entityType')||undefined;const logs=await prisma.auditLog.findMany({where:{user:{companyId:s.companyId},...(entityType?{entityType}:{})},include:{user:{select:{username:true,fullNameAr:true}}},orderBy:{createdAt:'desc'},take:300});return Response.json({ok:true,logs});}catch(e){return apiError(e)}}

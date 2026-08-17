@@ -1,0 +1,44 @@
+DTY ERP V1.0-RC.3
+Date: 2026-08-09
+Scope: Full DTY Factory ERP Release Candidate
+Arabic-first RTL: yes
+Multi-company / multi-plant: yes
+Plant seed: 2100
+Machines seed: 6
+Total spindles: 1414
+TypeScript/TSX syntax files checked: 128
+Prisma models: 71
+Prisma enums: 26
+API route files: 69
+UI pages: 36
+Write routes security-scanned: 45
+Business-rule assertions: 10/10 passed
+Security check: passed
+
+RC.3 hardening:
+- company/plant ownership checks on critical writes
+- login plant authorization + basic rate limit
+- same-origin browser write protection + security headers
+- race-safe finished goods allocation/dispatch guards
+- POY/BOM/Shift validation on run start
+- quality/master-data tenant isolation
+- fresh-baseline migration strategy; old additive SQL moved to legacy-migrations
+
+Executed in this workspace:
+- node scripts/prisma-structure-check.mjs
+- node scripts/security-check.mjs
+- node scripts/validate.mjs
+- TypeScript transpile syntax scan
+- compiled domain business-rule tests
+
+Could not execute because network/tooling is unavailable in this workspace:
+- npm dependency install (internal registry 404; public npm DNS EAI_AGAIN)
+- prisma format/validate/generate/migrate
+- semantic project typecheck against installed dependencies
+- Next production build
+- Playwright E2E
+
+Codex connection status visible to this assistant:
+- no invokable Codex coding namespace
+- codex CLI not installed
+- GitHub connector returns no project repositories

@@ -1,0 +1,2 @@
+import {prisma} from '@/lib/prisma';import {requirePermission,apiError} from '@/lib/rbac';import {customerProfitability} from '@/lib/analytics';
+export async function GET(req:Request){try{const s=await requirePermission('finance.read');const u=new URL(req.url);const days=Math.max(30,Math.min(730,Number(u.searchParams.get('days')||365)));const customers=await customerProfitability(prisma,s.companyId,s.plantId,days);return Response.json({ok:true,days,customers});}catch(e){return apiError(e)}}

@@ -1,0 +1,40 @@
+name: ERP CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: dty
+          POSTGRES_PASSWORD: dty
+          POSTGRES_DB: dty_erp_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U dty -d dty_erp_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://dty:dty@localhost:5432/dty_erp_ci?schema=public
+      SESSION_SECRET: ci-session-secret-at-least-32-characters-long
+      SEED_DEMO_PASSWORD: ci-demo-password-change-me
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: ${{ hashFiles('package-lock.json') != '' && 'npm' || '' }}
+      - name: Install dependencies
+        run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npm run db:seed
+      - run: npm run test:domain
+      - run: npm run test:structure
+      - run: npm run security:check
+      - run: npm run typecheck
+      - run: npm run build

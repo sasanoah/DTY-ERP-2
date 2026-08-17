@@ -16,12 +16,15 @@ export async function POST(req:Request){
       if(d.toBinCode){const b=await tx.bin.findFirst({where:{code:d.toBinCode,warehouseId:lot.warehouseId}});if(!b)throw Object.assign(new Error('موقع التخزين الوجهة غير صحيح'),{status:400})}
       if(d.fromBinCode){const b=await tx.bin.findFirst({where:{code:d.fromBinCode,warehouseId:lot.warehouseId}});if(!b)throw Object.assign(new Error('موقع التخزين المصدر غير صحيح'),{status:400})}
       if(outbound.has(d.movementType)&&lot.qcStatus!=='RELEASED')throw Object.assign(new Error('لا يمكن صرف Lot غير مفرج من الجودة'),{status:409});
-      const before=Number(lot.availableQtyKg);let after=before;
+      let before=Number(lot.availableQtyKg);let after=before;
       if(outbound.has(d.movementType)){
         const u=await tx.inventoryLot.updateMany({where:{id:d.lotId,qcStatus:'RELEASED',availableQtyKg:{gte:d.qtyKg}},data:{availableQtyKg:{decrement:d.qtyKg}}});
-        if(u.count!==1)throw Object.assign(new Error('الرصيد غير كافٍ أو حالة الجودة تغيرت'),{status:409});after=before-d.qtyKg;
+        if(u.count!==1)throw Object.assign(new Error('الرصيد غير كافٍ أو حالة الجودة تغيرت'),{status:409});
+        const refreshed=await tx.inventoryLot.findUniqueOrThrow({where:{id:d.lotId},select:{availableQtyKg:true}});
+        after=Number(refreshed.availableQtyKg);before=after+d.qtyKg;
       }else if(inbound.has(d.movementType)){
-        await tx.inventoryLot.update({where:{id:d.lotId},data:{availableQtyKg:{increment:d.qtyKg}}});after=before+d.qtyKg;
+        const refreshed=await tx.inventoryLot.update({where:{id:d.lotId},data:{availableQtyKg:{increment:d.qtyKg}},select:{availableQtyKg:true}});
+        after=Number(refreshed.availableQtyKg);before=after-d.qtyKg;
       }else if(d.movementType==='ADJUST'){
         after=d.qtyKg;await tx.inventoryLot.update({where:{id:d.lotId},data:{availableQtyKg:after}});
       }

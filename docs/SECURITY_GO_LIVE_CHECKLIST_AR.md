@@ -34,6 +34,8 @@
 
 ## سلامة البيانات
 - [x] Lot traceability API integration test. يبقى UAT الميداني.
+- [x] واجهة تتبع POY/DTY تعرض سلسلة الإنتاج والعميل وسجل المخزون بدل البيانات الخام.
+- [x] Manual inventory reconciliation atomic ويدعم الرصيد صفر، ونقل المخزون يفرض source/destination bins مختلفين.
 - [x] PENDING/HOLD يمنع issue وتوجد guards للـallocation/dispatch. يبقى UAT الميداني.
 - [x] Stock count conflict integration test.
 - [x] Concurrent inventory issue وfinished-goods allocation integration tests. يبقى UAT الميداني.

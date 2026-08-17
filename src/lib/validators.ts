@@ -1,5 +1,12 @@
 import {z} from 'zod';
-export const movementSchema=z.object({lotId:z.string().min(1),movementType:z.enum(['RECEIVE','MOVE','ISSUE','RETURN','ADJUST','PICK','DISPATCH']),qtyKg:z.coerce.number().positive(),fromBinCode:z.string().optional(),toBinCode:z.string().optional(),refType:z.string().optional(),refId:z.string().optional()});
+export const movementSchema=z.object({lotId:z.string().min(1),movementType:z.enum(['RECEIVE','MOVE','ISSUE','RETURN','ADJUST','PICK','DISPATCH']),qtyKg:z.coerce.number().nonnegative(),fromBinCode:z.string().optional(),toBinCode:z.string().optional(),refType:z.string().optional(),refId:z.string().optional()}).superRefine((d,ctx)=>{
+  if(d.movementType!=='ADJUST'&&d.qtyKg<=0)ctx.addIssue({code:'custom',path:['qtyKg'],message:'الكمية يجب أن تكون أكبر من صفر'});
+  if(d.movementType==='MOVE'){
+    if(!d.fromBinCode)ctx.addIssue({code:'custom',path:['fromBinCode'],message:'موقع التخزين المصدر مطلوب للنقل'});
+    if(!d.toBinCode)ctx.addIssue({code:'custom',path:['toBinCode'],message:'موقع التخزين الوجهة مطلوب للنقل'});
+    if(d.fromBinCode&&d.toBinCode&&d.fromBinCode===d.toBinCode)ctx.addIssue({code:'custom',path:['toBinCode'],message:'يجب أن يختلف موقع الوجهة عن المصدر'});
+  }
+});
 export const productionOrderSchema=z.object({productId:z.string().min(1),machineId:z.string().min(1),plannedQtyKg:z.coerce.number().positive(),plannedStart:z.coerce.date(),plannedEnd:z.coerce.date().optional(),priority:z.enum(['LOW','NORMAL','HIGH','URGENT']).default('NORMAL')});
 export const startRunSchema=z.object({productionOrderId:z.string().min(1),shiftId:z.string().min(1),poyLotId:z.string().min(1),poyIssueKg:z.coerce.number().positive()});
 export const completeRunSchema=z.object({gradeAKg:z.coerce.number().nonnegative(),gradeBKg:z.coerce.number().nonnegative(),wasteKg:z.coerce.number().nonnegative(),electricityKwh:z.coerce.number().nonnegative(),downtimeMin:z.coerce.number().int().nonnegative().default(0)});

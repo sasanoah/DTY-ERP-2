@@ -22,7 +22,7 @@
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
     "runtimeEnvironment": {"passed": 4, "total": 4},
-    "postgresPlaywright": {"passed": 30, "total": 30},
+    "postgresPlaywright": {"passed": 31, "total": 31},
     "apiErrorBoundary": {"passed": 4, "total": 4}
   },
   "securityCheck": {
@@ -50,6 +50,8 @@
       "quality-hold-tenant-isolation",
       "settings-plant-isolation",
       "approval-tenant-isolation",
+      "atomic-inventory-reconciliation",
+      "inventory-move-bin-validation",
       "atomic-document-number-sequences",
       "atomic-workflow-transition-claims",
       "atomic-operational-posting-claims",

@@ -14,7 +14,7 @@ UI pages: 36
 Write routes security-scanned: 45
 Business-rule assertions: 10/10 passed
 Runtime-environment assertions: 4/4 passed
-PostgreSQL-backed Playwright tests: 30/30 passed
+PostgreSQL-backed Playwright tests: 31/31 passed
 API error-boundary assertions: 4/4 passed
 Security check: passed
 Production dependency vulnerabilities: 0
@@ -36,6 +36,8 @@ RC.3 hardening:
 - atomic operational posting claims for runs, downtime, stock counts, maintenance, quality dispositions and approvals
 - leased, tenant-scoped integration outbox claims with stale-lease recovery
 - customer-adjustment sales-order ownership validation
+- user-friendly POY/DTY lot trace with bounded movement history and direct inventory actions
+- atomic manual inventory reconciliation, zero-balance support and mandatory source/destination bins for moves
 - POY/BOM/Shift validation on run start
 - quality/master-data tenant isolation
 - fresh-baseline migration plus backward-compatible quality-hold tenant backfill; old additive SQL moved to legacy-migrations

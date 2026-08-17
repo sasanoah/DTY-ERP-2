@@ -26,7 +26,9 @@ export async function POST(req:Request){
         const refreshed=await tx.inventoryLot.update({where:{id:d.lotId},data:{availableQtyKg:{increment:d.qtyKg}},select:{availableQtyKg:true}});
         after=Number(refreshed.availableQtyKg);before=after-d.qtyKg;
       }else if(d.movementType==='ADJUST'){
-        after=d.qtyKg;await tx.inventoryLot.update({where:{id:d.lotId},data:{availableQtyKg:after}});
+        after=d.qtyKg;
+        const adjusted=await tx.inventoryLot.updateMany({where:{id:d.lotId,availableQtyKg:lot.availableQtyKg},data:{availableQtyKg:after}});
+        if(adjusted.count!==1)throw Object.assign(new Error('تغير الرصيد أثناء التسوية؛ حدّث الصفحة وأعد المحاولة'),{status:409});
       }
       const movement=await tx.inventoryMovement.create({data:{lotId:d.lotId,movementType:d.movementType,qtyKg:d.qtyKg,fromBinCode:d.fromBinCode,toBinCode:d.toBinCode,refType:d.refType,refId:d.refId,userId:s.userId}});
       await audit(tx,{userId:s.userId,entityType:'InventoryLot',entityId:d.lotId,action:`MOVEMENT_${d.movementType}`,before:{availableQtyKg:before},after:{availableQtyKg:after,movementId:movement.id}});

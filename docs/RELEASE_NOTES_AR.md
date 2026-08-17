@@ -16,6 +16,13 @@ Quotation → Floor Price → Sales Order → Credit → Allocation → Dispatch
 ### Inventory & Quality
 Lot Inventory → QR → Stock Count → QC Specs/Tests → Hold/Release/Reject → Full Traceability.
 
+## إصلاح تتبع الـLot ومخزون الخامات
+- شاشة تتبع عربية واضحة تعرض رصيد POY، حركات المخزون، أوامر التشغيل، Lots الـDTY الناتجة، والتسليمات والعملاء بدل عرض JSON خام.
+- روابط مباشرة من كل Lot خام إلى التتبع وتحديث الرصيد.
+- التسوية اليدوية تدعم ضبط الرصيد الفعلي إلى صفر وتحمي من الكتابة المتزامنة المتعارضة.
+- النقل بين مواقع التخزين يفرض تحديد موقع مصدر ووجهة مختلفين، ولا يغيّر إجمالي رصيد الـLot.
+- سجل الحركة يعرض المستخدم والمواقع والمرجع، مع إرجاع أحدث 200 حركة لتفادي تحميل غير محدود.
+
 ### Reliability
 PM/Breakdown → Spare Parts → Maintenance Cost → Machine economics.
 
@@ -45,6 +52,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - BOM/Shift/Plant validation عند بدء Production Run.
 - منع إغلاق Run مع downtime مفتوح.
 - Inventory Adjustment يحتاج صلاحية Stock Count.
+- Inventory reconciliation يستخدم atomic compare-and-set، وحركات النقل تتحقق من مواقع التخزين.
 - Master Data updates tenant-scoped.
 - Security scanner يفحص 45 write route ويؤكد authentication markers.
 
@@ -54,7 +62,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 30/30.
+- PostgreSQL-backed Playwright = 31/31.
 - API error-boundary assertions = 4/4.
 - Runtime environment = 4/4؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.

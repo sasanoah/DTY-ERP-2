@@ -34,6 +34,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Tenant-scoped quality holds وtraceability وsettings وapproval decisions مع migration لترحيل البيانات السابقة.
 - أخطاء التحقق من المدخلات ترجع HTTP 400 بدل تصنيفها كأخطاء خادم.
 - Atomic document sequences تمنع تكرار أرقام المستندات عند الإنشاء المتزامن، مع backfill للأرقام القائمة.
+- Workflow transitions تستخدم atomic claims لمنع تكرار تحويل الخطط/RFQ/عروض الأسعار أو تكرار الشحن والفوترة عند الطلبات المتزامنة.
 - Integration outbox يستخدم leased atomic claims واسترجاع الـleases المتوقفة ويعزل أحداث المستخدم حسب الشركة/المصنع.
 - Customer cost adjustments تتحقق أن أمر البيع يطابق العميل والمصنع.
 - BOM/Shift/Plant validation عند بدء Production Run.
@@ -48,7 +49,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 23/23.
+- PostgreSQL-backed Playwright = 26/26.
 - Runtime environment = 3/3؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.
 - npm production audit = 0 vulnerabilities.

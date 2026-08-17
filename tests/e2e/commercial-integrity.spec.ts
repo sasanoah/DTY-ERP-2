@@ -18,6 +18,80 @@ async function restoreRawBalance(page: Page, lotId: string, qtyKg: number, refId
 }
 
 test.describe('commercial transaction integrity', () => {
+  test('sales quotations convert exactly once under competing requests', async ({page}) => {
+    await login(page, 'sales');
+    const contextResponse = await page.request.get('/api/sales/context');
+    expect(contextResponse.status()).toBe(200);
+    const context = (await contextResponse.json()) as {
+      customers: Array<{id: string; code: string}>;
+      products: Array<{id: string; code: string}>;
+    };
+    const customer = context.customers.find((candidate) => candidate.code === 'CUST-A');
+    const product = context.products.find((candidate) => candidate.code === 'FG-DTY-0300-096-NIM-SD');
+    expect(customer).toBeTruthy();
+    expect(product).toBeTruthy();
+    const quotationResponse = await page.request.post('/api/sales/quotations', {
+      data: {
+        customerId: customer!.id,
+        currency: 'EGP',
+        validUntil: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+        paymentTermsDays: 30,
+        lines: [{
+          productId: product!.id,
+          qtyKg: 5,
+          unitPrice: 120,
+          requiredDate: new Date(Date.now() + 86_400_000).toISOString(),
+        }],
+      },
+    });
+    expect(quotationResponse.status()).toBe(201);
+    const quotation = ((await quotationResponse.json()) as {quotation: {id: string}}).quotation;
+    const conversions = await Promise.all([
+      page.request.post(`/api/sales/quotations/${quotation.id}/convert`),
+      page.request.post(`/api/sales/quotations/${quotation.id}/convert`),
+    ]);
+    expect(conversions.map((response) => response.status()).sort()).toEqual([201, 409]);
+  });
+
+  test('RFQs convert once and reject supplier-quote edits after conversion', async ({page}) => {
+    await login(page, 'procurement');
+    const contextResponse = await page.request.get('/api/procurement/context');
+    expect(contextResponse.status()).toBe(200);
+    const context = (await contextResponse.json()) as {
+      suppliers: Array<{id: string}>;
+      materials: Array<{id: string}>;
+    };
+    expect(context.suppliers[0]).toBeTruthy();
+    expect(context.materials[0]).toBeTruthy();
+    const rfqResponse = await page.request.post('/api/procurement/rfq', {
+      data: {
+        dueDate: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+        notes: `E2E-RFQ-CLAIM-${Date.now()}`,
+        lines: [{materialId: context.materials[0].id, qtyKg: 100}],
+      },
+    });
+    expect(rfqResponse.status()).toBe(201);
+    const rfq = (await rfqResponse.json()) as {rfq: {id: string; lines: Array<{id: string}>}};
+    const quotePayload = {
+      rfqId: rfq.rfq.id,
+      supplierId: context.suppliers[0].id,
+      currency: 'USD',
+      exchangeRate: 50,
+      paymentTermsDays: 30,
+      lines: [{rfqLineId: rfq.rfq.lines[0].id, unitPrice: 1, freightEgpKg: 0, leadTimeDays: 7}],
+    };
+    const quoteResponse = await page.request.post('/api/procurement/rfq/quotes', {data: quotePayload});
+    expect(quoteResponse.status()).toBe(200);
+    const quote = ((await quoteResponse.json()) as {quote: {id: string}}).quote;
+    const conversions = await Promise.all([
+      page.request.post(`/api/procurement/rfq/${rfq.rfq.id}/convert`, {data: {supplierQuoteId: quote.id}}),
+      page.request.post(`/api/procurement/rfq/${rfq.rfq.id}/convert`, {data: {supplierQuoteId: quote.id}}),
+    ]);
+    expect(conversions.map((response) => response.status()).sort()).toEqual([201, 409]);
+    const lateEdit = await page.request.post('/api/procurement/rfq/quotes', {data: quotePayload});
+    expect(lateEdit.status()).toBe(409);
+  });
+
   test('concurrent sales orders receive distinct atomic document numbers', async ({page}) => {
     await login(page, 'sales');
     const contextResponse = await page.request.get('/api/sales/context');
@@ -170,6 +244,27 @@ test.describe('commercial transaction integrity', () => {
       }).lots.find((candidate) => candidate.id === finishedLot.id);
       expect(Number(finishedAfter?.reservedQtyKg)).toBe(allocatedFromNewLot);
       expect(Number(finishedAfter?.freeQtyKg)).toBe(98 - allocatedFromNewLot);
+
+      const dispatchResponses = await Promise.all([
+        page.request.post(`/api/sales/orders/${order.id}/dispatch`),
+        page.request.post(`/api/sales/orders/${order.id}/dispatch`),
+      ]);
+      expect(dispatchResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
+
+      const invoiceResponses = await Promise.all([
+        page.request.post(`/api/sales/orders/${order.id}/invoice`),
+        page.request.post(`/api/sales/orders/${order.id}/invoice`),
+      ]);
+      expect(invoiceResponses.map((response) => response.status()).sort()).toEqual([200, 409]);
+
+      const fulfilledResponse = await page.request.get('/api/sales/orders');
+      expect(fulfilledResponse.status()).toBe(200);
+      const fulfilled = ((await fulfilledResponse.json()) as {
+        orders: Array<{id: string; status: string; deliveries: unknown[]; invoices: unknown[]}>;
+      }).orders.find((candidate) => candidate.id === order.id);
+      expect(fulfilled).toMatchObject({status: 'INVOICED'});
+      expect(fulfilled?.deliveries).toHaveLength(1);
+      expect(fulfilled?.invoices).toHaveLength(1);
     } finally {
       if (runId && !completed) {
         await page.request.post(`/api/production/runs/${runId}/complete`, {

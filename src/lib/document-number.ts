@@ -1,13 +1,16 @@
 import {randomUUID} from 'node:crypto';
+import type {Prisma, PrismaClient} from '@prisma/client';
 import {prisma} from './prisma';
+
+type DB = Prisma.TransactionClient | PrismaClient;
 
 function yearPrefix(kind: string) {
   return `${kind}-${String(new Date().getFullYear()).slice(-2)}-`;
 }
 
-async function nextNumber(kind: string, width: number) {
+async function nextNumber(db: DB, kind: string, width: number) {
   const prefix = yearPrefix(kind);
-  const sequence = await prisma.documentSequence.upsert({
+  const sequence = await db.documentSequence.upsert({
     where: {key: prefix},
     update: {value: {increment: 1}},
     create: {key: prefix, value: 1},
@@ -15,18 +18,18 @@ async function nextNumber(kind: string, width: number) {
   return `${prefix}${String(sequence.value).padStart(width, '0')}`;
 }
 
-export function nextProductionOrderNo() { return nextNumber('PRD', 6); }
-export function nextPurchaseRequisitionNo() { return nextNumber('PR', 6); }
-export function nextPurchaseOrderNo() { return nextNumber('PO', 6); }
-export function nextGrnNo() { return nextNumber('GRN', 6); }
-export function nextSalesOrderNo() { return nextNumber('SO', 6); }
-export function nextDeliveryNo() { return nextNumber('DLV', 6); }
-export function nextInvoiceNo() { return nextNumber('INV', 6); }
-export function nextMaintenanceOrderNo() { return nextNumber('MO', 6); }
-export function nextStockCountNo() { return nextNumber('CNT', 6); }
-export function nextProductionPlanNo() { return nextNumber('PLAN', 5); }
-export function nextRfqNo() { return nextNumber('RFQ', 5); }
-export function nextSalesQuotationNo() { return nextNumber('QT', 5); }
+export function nextProductionOrderNo(db: DB = prisma) { return nextNumber(db, 'PRD', 6); }
+export function nextPurchaseRequisitionNo(db: DB = prisma) { return nextNumber(db, 'PR', 6); }
+export function nextPurchaseOrderNo(db: DB = prisma) { return nextNumber(db, 'PO', 6); }
+export function nextGrnNo(db: DB = prisma) { return nextNumber(db, 'GRN', 6); }
+export function nextSalesOrderNo(db: DB = prisma) { return nextNumber(db, 'SO', 6); }
+export function nextDeliveryNo(db: DB = prisma) { return nextNumber(db, 'DLV', 6); }
+export function nextInvoiceNo(db: DB = prisma) { return nextNumber(db, 'INV', 6); }
+export function nextMaintenanceOrderNo(db: DB = prisma) { return nextNumber(db, 'MO', 6); }
+export function nextStockCountNo(db: DB = prisma) { return nextNumber(db, 'CNT', 6); }
+export function nextProductionPlanNo(db: DB = prisma) { return nextNumber(db, 'PLAN', 5); }
+export function nextRfqNo(db: DB = prisma) { return nextNumber(db, 'RFQ', 5); }
+export function nextSalesQuotationNo(db: DB = prisma) { return nextNumber(db, 'QT', 5); }
 
 export function finishedLotNo(productCode: string, machineCode: string) {
   const date = new Date();

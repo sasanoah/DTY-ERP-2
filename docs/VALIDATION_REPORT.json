@@ -22,7 +22,7 @@
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
     "runtimeEnvironment": {"passed": 3, "total": 3},
-    "postgresPlaywright": {"passed": 23, "total": 23}
+    "postgresPlaywright": {"passed": 26, "total": 26}
   },
   "securityCheck": {
     "passed": true,
@@ -46,6 +46,7 @@
       "settings-plant-isolation",
       "approval-tenant-isolation",
       "atomic-document-number-sequences",
+      "atomic-workflow-transition-claims",
       "leased-integration-event-claims",
       "integration-event-tenant-isolation",
       "customer-adjustment-reference-isolation",

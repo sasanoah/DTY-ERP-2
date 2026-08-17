@@ -1,2 +1,81 @@
-import {prisma} from '@/lib/prisma';import {requirePermission,apiError} from '@/lib/rbac';import {audit} from '@/lib/audit';
-export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){try{const s=await requirePermission('production.plan');const {id}=await params;const {action}=await req.json();if(action==='APPROVE'){const p=await prisma.productionPlan.findUnique({where:{id}});if(!p||p.plantId!==s.plantId)throw Object.assign(new Error('الخطة غير موجودة'),{status:404});if(p.status!=='SUBMITTED')throw Object.assign(new Error('الخطة ليست مقدمة للاعتماد'),{status:409});const u=await prisma.productionPlan.update({where:{id},data:{status:'APPROVED'}});await audit(prisma,{userId:s.userId,entityType:'ProductionPlan',entityId:id,action:'APPROVE'});return Response.json({ok:true,plan:u});}if(action==='CONVERT'){const result=await prisma.$transaction(async tx=>{const p=await tx.productionPlan.findUnique({where:{id},include:{lines:{include:{productionOrder:true}}}});if(!p||p.plantId!==s.plantId)throw Object.assign(new Error('الخطة غير موجودة'),{status:404});if(p.status!=='APPROVED')throw Object.assign(new Error('اعتمد الخطة أولًا'),{status:409});const yy=String(new Date().getFullYear()).slice(-2),prefix=`PRD-${yy}-`;const last=await tx.productionOrder.findFirst({where:{orderNo:{startsWith:prefix}},orderBy:{orderNo:'desc'},select:{orderNo:true}});let seq=last?Number(last.orderNo.split('-').at(-1))+1:1;const created=[];for(const l of p.lines){if(l.productionOrder)continue;const orderNo=`${prefix}${String(seq++).padStart(6,'0')}`;const o=await tx.productionOrder.create({data:{orderNo,productId:l.productId,machineId:l.machineId,plannedQtyKg:l.plannedQtyKg,plannedStart:l.plannedStart,plannedEnd:l.plannedEnd,priority:l.priority,status:'DRAFT',planLineId:l.id}});created.push(o)}await tx.productionPlan.update({where:{id},data:{status:'CONVERTED'}});await audit(tx,{userId:s.userId,entityType:'ProductionPlan',entityId:id,action:'CONVERT',after:{orders:created.map(x=>x.orderNo)}});return created});return Response.json({ok:true,orders:result});}throw Object.assign(new Error('ACTION_NOT_SUPPORTED'),{status:400});}catch(e){return apiError(e)}}
+import {audit} from '@/lib/audit';
+import {nextProductionOrderNo} from '@/lib/document-number';
+import {prisma} from '@/lib/prisma';
+import {apiError, requirePermission} from '@/lib/rbac';
+
+export async function POST(req: Request, {params}: {params: Promise<{id: string}>}) {
+  try {
+    const session = await requirePermission('production.plan');
+    const {id} = await params;
+    const {action} = await req.json();
+
+    if (action === 'APPROVE') {
+      const plan = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.productionPlan.updateMany({
+          where: {id, plantId: session.plantId, status: 'SUBMITTED'},
+          data: {status: 'APPROVED'},
+        });
+        if (claimed.count !== 1) {
+          const exists = await tx.productionPlan.findFirst({where: {id, plantId: session.plantId}});
+          if (!exists) throw Object.assign(new Error('الخطة غير موجودة'), {status: 404});
+          throw Object.assign(new Error('الخطة ليست مقدمة للاعتماد'), {status: 409});
+        }
+        const updated = await tx.productionPlan.findUniqueOrThrow({where: {id}});
+        await audit(tx, {userId: session.userId, entityType: 'ProductionPlan', entityId: id, action: 'APPROVE'});
+        return updated;
+      });
+      return Response.json({ok: true, plan});
+    }
+
+    if (action === 'CONVERT') {
+      const orders = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.productionPlan.updateMany({
+          where: {id, plantId: session.plantId, status: 'APPROVED'},
+          data: {status: 'CONVERTED'},
+        });
+        if (claimed.count !== 1) {
+          const exists = await tx.productionPlan.findFirst({where: {id, plantId: session.plantId}});
+          if (!exists) throw Object.assign(new Error('الخطة غير موجودة'), {status: 404});
+          throw Object.assign(new Error('تم تحويل الخطة أو أنها غير معتمدة'), {status: 409});
+        }
+
+        const plan = await tx.productionPlan.findUniqueOrThrow({
+          where: {id},
+          include: {lines: {include: {productionOrder: true}}},
+        });
+        const created = [];
+        for (const line of plan.lines) {
+          if (line.productionOrder) continue;
+          const orderNo = await nextProductionOrderNo(tx);
+          const order = await tx.productionOrder.create({
+            data: {
+              orderNo,
+              productId: line.productId,
+              machineId: line.machineId,
+              plannedQtyKg: line.plannedQtyKg,
+              plannedStart: line.plannedStart,
+              plannedEnd: line.plannedEnd,
+              priority: line.priority,
+              status: 'DRAFT',
+              planLineId: line.id,
+            },
+          });
+          created.push(order);
+        }
+        await audit(tx, {
+          userId: session.userId,
+          entityType: 'ProductionPlan',
+          entityId: id,
+          action: 'CONVERT',
+          after: {orders: created.map((order) => order.orderNo)},
+        });
+        return created;
+      });
+      return Response.json({ok: true, orders});
+    }
+
+    throw Object.assign(new Error('ACTION_NOT_SUPPORTED'), {status: 400});
+  } catch (error) {
+    return apiError(error);
+  }
+}

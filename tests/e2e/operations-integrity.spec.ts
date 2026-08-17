@@ -18,6 +18,61 @@ async function adjustBalance(page: Page, lotId: string, qtyKg: number, refId: st
 }
 
 test.describe('operational posting integrity', () => {
+  test('competing plan conversions claim workflows once and allocate unique order numbers', async ({page}) => {
+    await login(page, 'prod_mgr');
+    const contextResponse = await page.request.get('/api/production/plans');
+    expect(contextResponse.status()).toBe(200);
+    const context = (await contextResponse.json()) as {
+      products: Array<{id: string}>;
+      machines: Array<{id: string}>;
+    };
+    expect(context.products[0]).toBeTruthy();
+    expect(context.machines[0]).toBeTruthy();
+
+    const start = new Date(Date.now() + 2 * 86_400_000);
+    const end = new Date(start.getTime() + 2 * 86_400_000);
+    const lines = [0, 1].map((offset) => ({
+      productId: context.products[0].id,
+      machineId: context.machines[0].id,
+      plannedQtyKg: 10 + offset,
+      plannedStart: new Date(start.getTime() + offset * 3_600_000).toISOString(),
+      plannedEnd: new Date(start.getTime() + (offset + 1) * 3_600_000).toISOString(),
+      priority: 'NORMAL',
+    }));
+    const createPlan = async (notes: string) => {
+      const response = await page.request.post('/api/production/plans', {
+        data: {startDate: start.toISOString(), endDate: end.toISOString(), notes, lines},
+      });
+      expect(response.status()).toBe(201);
+      return ((await response.json()) as {plan: {id: string}}).plan;
+    };
+    const [first, second] = await Promise.all([
+      createPlan(`E2E-CONVERSION-A-${Date.now()}`),
+      createPlan(`E2E-CONVERSION-B-${Date.now()}`),
+    ]);
+    for (const plan of [first, second]) {
+      const response = await page.request.post(`/api/production/plans/${plan.id}/action`, {
+        data: {action: 'APPROVE'},
+      });
+      expect(response.status()).toBe(200);
+    }
+
+    const conversions = await Promise.all([
+      page.request.post(`/api/production/plans/${first.id}/action`, {data: {action: 'CONVERT'}}),
+      page.request.post(`/api/production/plans/${first.id}/action`, {data: {action: 'CONVERT'}}),
+      page.request.post(`/api/production/plans/${second.id}/action`, {data: {action: 'CONVERT'}}),
+    ]);
+    expect(conversions.map((response) => response.status()).sort()).toEqual([200, 200, 409]);
+    const successful = conversions.filter((response) => response.status() === 200);
+    const orderNumbers = (await Promise.all(successful.map(async (response) =>
+      ((await response.json()) as {orders: Array<{orderNo: string}>}).orders)))
+      .flat()
+      .map((order) => order.orderNo);
+    expect(orderNumbers).toHaveLength(4);
+    expect(new Set(orderNumbers).size).toBe(4);
+    expect(orderNumbers.every((orderNo) => /^PRD-\d{2}-\d{6}$/.test(orderNo))).toBe(true);
+  });
+
   test('stock counts require all lines and reject posting after stock changes', async ({page}) => {
     await login(page, 'warehouse');
     const inventoryResponse = await page.request.get('/api/inventory/lots');

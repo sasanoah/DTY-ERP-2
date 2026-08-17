@@ -39,4 +39,5 @@
 - [x] Supplier concurrent overpayment rejection integration test. يبقى UAT الميداني.
 - [x] Live user deactivation وquality/settings plant isolation integration tests.
 - [x] Concurrent document-number وintegration-outbox claim integration tests.
+- [x] Atomic workflow claim tests لتحويل الخطط والشحن والفوترة ومنع الـduplicate posting.
 - [x] Customer adjustment reference isolation integration test.

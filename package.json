@@ -1,0 +1,53 @@
+{
+  "name": "dty-erp-mvp",
+  "version": "1.0.0-rc.3",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/start-production.mjs",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "validate": "node scripts/validate.mjs",
+    "test:structure": "node scripts/validate.mjs",
+    "test:domain": "tsx tests/business-rules.test.ts",
+    "test:e2e": "playwright test",
+    "test:runtime-env": "node --test tests/runtime-env.test.mjs",
+    "test:api-error": "tsx --test tests/api-error.test.ts",
+    "security:check": "node scripts/security-check.mjs",
+    "test:prisma-structure": "node scripts/prisma-structure-check.mjs",
+    "db:baseline": "sh scripts/create-baseline-migration.sh",
+    "pilot:bootstrap": "sh scripts/pilot-bootstrap.sh",
+    "release:gate": "sh scripts/release-gate.sh",
+    "db:backup": "sh scripts/backup-postgres.sh",
+    "db:restore": "sh scripts/restore-postgres.sh",
+    "db:drill": "sh scripts/backup-restore-drill.sh"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "next": "16.3.1",
+    "qrcode": "1.5.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zod": "4.0.17"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "22.15.30",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "prisma": "6.19.3",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.1"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "release": "1.0.0-rc.3",
+  "generatedAt": "2026-08-17",
+  "source": {
+    "typescriptTsxFiles": 136,
+    "semanticTypecheckPassed": true,
+    "nextProductionBuildPassed": true
+  },
+  "prisma": {
+    "models": 73,
+    "enums": 26,
+    "missingTypeTargets": 0,
+    "duplicateFields": 0,
+    "baselineMigrationDeployPassed": true,
+    "postgresVersion": 16
+  },
+  "application": {
+    "apiRouteFiles": 69,
+    "pages": 36,
+    "writeRoutesSecurityScanned": 45
+  },
+  "tests": {
+    "businessRules": {"passed": 10, "total": 10},
+    "runtimeEnvironment": {"passed": 4, "total": 4},
+    "postgresPlaywright": {"passed": 32, "total": 32},
+    "apiErrorBoundary": {"passed": 4, "total": 4}
+  },
+  "securityCheck": {
+    "passed": true,
+    "productionDependencyVulnerabilities": 0,
+    "checks": [
+      "no-default-password-in-login",
+      "no-hardcoded-api-keys",
+      "no-seed-password-log",
+      "production-seed-password-guard",
+      "same-origin-write-protection",
+      "secure-response-headers",
+      "distributed-login-rate-limit",
+      "login-timing-equalization",
+      "server-error-redaction",
+      "safe-error-correlation",
+      "password-reset-session-revocation",
+      "plant-selection-authorization",
+      "live-user-session-authorization",
+      "company-scoped-permission-resolution",
+      "critical-write-tenant-isolation",
+      "sales-confirmation-tenant-isolation",
+      "atomic-supplier-payment-reservation",
+      "traceability-tenant-isolation",
+      "quality-hold-tenant-isolation",
+      "settings-plant-isolation",
+      "approval-tenant-isolation",
+      "atomic-inventory-reconciliation",
+      "inventory-move-bin-validation",
+      "atomic-document-number-sequences",
+      "atomic-workflow-transition-claims",
+      "complete-rfq-quote-coverage",
+      "atomic-operational-posting-claims",
+      "leased-integration-event-claims",
+      "integration-event-tenant-isolation",
+      "customer-adjustment-reference-isolation",
+      "write-routes-authenticated",
+      "ai-assistant-read-only"
+    ]
+  },
+  "deployment": {
+    "deterministicNpmInstall": true,
+    "migrationImagePassed": true,
+    "readOnlyRuntimeImagePassed": true,
+    "weakPlaceholderSecretsRejected": true,
+    "databaseReadinessPassed": true,
+    "backupRestoreDrillPassed": true
+  },
+  "factorySeed": {
+    "machines": 6,
+    "spindles": 1414,
+    "plantCode": "2100"
+  },
+  "remainingGoLiveGates": [
+    "Deploy immutable image digests behind staging HTTPS/WAF with managed secrets and a private least-privilege PostgreSQL user",
+    "Repeat backup/restore using encrypted production-like storage and record measured RPO/RTO",
+    "Complete five reconciled pilot shifts and close Critical/High UAT findings",
+    "Obtain Production, Warehouse, Quality, and Finance sign-off"
+  ]
+}

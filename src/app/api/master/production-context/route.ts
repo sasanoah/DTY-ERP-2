@@ -1,0 +1,2 @@
+import {prisma} from '@/lib/prisma'; import {requirePermission,apiError} from '@/lib/rbac';
+export async function GET(){try{const s=await requirePermission('production.read'); const [products,machines]=await Promise.all([prisma.product.findMany({where:{companyId:s.companyId,active:true},orderBy:{code:'asc'}}),prisma.machine.findMany({where:{plantId:s.plantId},orderBy:{code:'asc'}})]);return Response.json({ok:true,products,machines});}catch(e){return apiError(e)}}

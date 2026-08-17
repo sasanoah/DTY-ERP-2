@@ -1,0 +1,11 @@
+import {prisma} from '@/lib/prisma';import {requirePermission,apiError} from '@/lib/rbac';
+export async function GET(){try{const s=await requirePermission('reports.read');if(!s.plantId)throw Object.assign(new Error('PLANT_REQUIRED'),{status:400});const now=new Date();const start=new Date(now.getFullYear(),now.getMonth(),1);const [runs,rawLots,finishedLots,invoices,supplierInvoices,maintenance,orders]=await Promise.all([
+ prisma.productionRun.findMany({where:{startTime:{gte:start},productionOrder:{machine:{plantId:s.plantId}}},include:{costSnapshot:true,productionOrder:true}}),
+ prisma.inventoryLot.findMany({where:{warehouse:{plantId:s.plantId}}}),
+ prisma.finishedLot.findMany({where:{productionRun:{productionOrder:{machine:{plantId:s.plantId}}}},include:{productionRun:{include:{costSnapshot:true}}}}),
+ prisma.invoice.findMany({where:{customer:{companyId:s.companyId},status:{in:['OPEN','PARTIAL','OVERDUE']}}}),
+ prisma.supplierInvoice.findMany({where:{companyId:s.companyId,status:{in:['OPEN','PARTIAL','OVERDUE']}}}),
+ prisma.maintenanceOrder.findMany({where:{machine:{plantId:s.plantId},openedAt:{gte:start}}}),
+ prisma.salesOrder.findMany({where:{plantId:s.plantId,orderDate:{gte:start}},include:{lines:true}})
+ ]);
+ const saleable=runs.reduce((a,r)=>a+Number(r.gradeAKg)+Number(r.gradeBKg),0),input=runs.reduce((a,r)=>a+Number(r.inputKg),0),waste=runs.reduce((a,r)=>a+Number(r.wasteKg),0);const rawValue=rawLots.reduce((a,l)=>a+Number(l.availableQtyKg)*Number(l.landedCostEgpKg),0);const fgValue=finishedLots.reduce((a,l)=>a+Number(l.availableQtyKg)*Number(l.productionRun?.costSnapshot?.fullCostEgpKg||0),0);const ar=invoices.reduce((a,i)=>a+Math.max(0,Number(i.totalAmount)-Number(i.paidAmount)),0);const ap=supplierInvoices.reduce((a,i)=>a+Math.max(0,Number(i.totalAmount)-Number(i.paidAmount)),0);const orderValue=orders.reduce((a,o)=>a+o.lines.reduce((b,l)=>b+Number(l.qtyKg)*Number(l.unitPrice),0),0);return Response.json({ok:true,period:{from:start,to:now},kpis:{productionKg:saleable,yield:input?saleable/input:0,wastePct:input?waste/input:0,rawInventoryValue:rawValue,fgInventoryValue:fgValue,receivables:ar,payables:ap,netWorkingCapital:rawValue+fgValue+ar-ap,maintenanceOrders:maintenance.length,salesOrderValue:orderValue}});}catch(e){return apiError(e)}}

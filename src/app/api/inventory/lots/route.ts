@@ -1,0 +1,2 @@
+import {prisma} from '@/lib/prisma'; import {requirePermission,apiError} from '@/lib/rbac';
+export async function GET(){try{const s=await requirePermission('inventory.read'); const lots=await prisma.inventoryLot.findMany({where:{warehouse:{plantId:s.plantId},material:{companyId:s.companyId}},include:{material:true,supplier:true,warehouse:{include:{bins:{orderBy:{code:'asc'}}}}},orderBy:{createdAt:'desc'}}); return Response.json({ok:true,lots});}catch(e){return apiError(e)}}

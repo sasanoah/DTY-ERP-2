@@ -1,0 +1,66 @@
+DTY ERP V1.0-RC.3
+Date: 2026-08-17
+Scope: Full DTY Factory ERP Release Candidate
+Arabic-first RTL: yes
+Multi-company / multi-plant: yes
+Plant seed: 2100
+Machines seed: 6
+Total spindles: 1414
+TypeScript/TSX files checked: 136
+Prisma models: 73
+Prisma enums: 26
+API route files: 69
+UI pages: 36
+Write routes security-scanned: 45
+Business-rule assertions: 10/10 passed
+Runtime-environment assertions: 4/4 passed
+PostgreSQL-backed Playwright tests: 32/32 passed
+API error-boundary assertions: 4/4 passed
+Security check: passed
+Production dependency vulnerabilities: 0
+
+RC.3 hardening:
+- company/plant ownership checks on critical writes
+- login plant authorization + atomic database-backed distributed rate limit
+- hashed throttle identifiers + nonexistent-account password timing equalization
+- centralized 5xx/upstream error redaction with safe correlation metadata
+- database-backed password-reset session revocation across all app instances
+- same-origin browser write protection + security headers
+- race-safe finished goods allocation/dispatch guards
+- atomic supplier-payment balance reservation
+- plant/company-scoped sales-order confirmation
+- database-refreshed user status and role authorization
+- tenant-scoped quality holds, traceability, settings and approval decisions
+- atomic database-backed document sequences and collision-resistant finished-lot suffixes
+- transaction-scoped sequences and atomic workflow claims for plan/RFQ/quotation conversion, dispatch and invoicing
+- multi-material RFQ workspace with complete supplier-quote coverage, weighted EGP comparison and automatic competing-quote rejection
+- atomic operational posting claims for runs, downtime, stock counts, maintenance, quality dispositions and approvals
+- leased, tenant-scoped integration outbox claims with stale-lease recovery
+- customer-adjustment sales-order ownership validation
+- user-friendly POY/DTY lot trace with bounded movement history and direct inventory actions
+- atomic manual inventory reconciliation, zero-balance support and mandatory source/destination bins for moves
+- POY/BOM/Shift validation on run start
+- quality/master-data tenant isolation
+- fresh-baseline migration plus backward-compatible quality-hold tenant backfill; old additive SQL moved to legacy-migrations
+- fail-fast production runtime environment validation
+- dedicated Docker migrator and read-only/cap-drop runtime composition
+- transactional PostgreSQL backup/restore drill in CI
+- concurrent inventory/allocation/payment/document-number/workflow/operational-posting/outbox, credit-override audit, stock-count conflict, mass-balance, traceability, live user revocation, plant settings, quality scope, finance reference, auth and RBAC integration coverage
+
+Executed in this workspace:
+- node scripts/prisma-structure-check.mjs
+- node scripts/security-check.mjs
+- node scripts/validate.mjs
+- TypeScript transpile syntax scan
+- compiled domain business-rule tests
+- npm ci and npm production audit
+- prisma format/validate/generate and PostgreSQL 16 migrate deploy
+- semantic TypeScript project check and Next.js production build
+- PostgreSQL backup/restore drill with critical-count verification
+- production Docker migrator/runtime, weak-secret rejection and readiness
+- Playwright E2E security and operational-integrity suite
+
+Remaining operational go-live gates:
+- staging HTTPS/WAF, managed secrets, private least-privilege PostgreSQL and encrypted backups
+- measured staging restore RPO/RTO
+- five reconciled pilot shifts and operational sign-off

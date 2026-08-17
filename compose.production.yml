@@ -1,0 +1,40 @@
+services:
+  migrate:
+    image: ${DTY_ERP_MIGRATOR_IMAGE:-dty-erp-migrator:1.0.0-rc.3}
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  app:
+    image: ${DTY_ERP_IMAGE:-dty-erp:1.0.0-rc.3}
+    build:
+      context: .
+      target: runner
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      LOGIN_THROTTLE_SECRET: ${LOGIN_THROTTLE_SECRET:-}
+      INTERNAL_JOB_TOKEN: ${INTERNAL_JOB_TOKEN:-}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+      INTEGRATION_WEBHOOK_SECRET: ${INTEGRATION_WEBHOOK_SECRET:-}
+      PILOT_MACHINE_CODE: ${PILOT_MACHINE_CODE:-DTY-CN-02}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

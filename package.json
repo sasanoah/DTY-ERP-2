@@ -16,6 +16,7 @@
     "test:domain": "tsx tests/business-rules.test.ts",
     "test:e2e": "playwright test",
     "test:runtime-env": "node --test tests/runtime-env.test.mjs",
+    "test:api-error": "tsx --test tests/api-error.test.ts",
     "security:check": "node scripts/security-check.mjs",
     "test:prisma-structure": "node scripts/prisma-structure-check.mjs",
     "db:baseline": "sh scripts/create-baseline-migration.sh",

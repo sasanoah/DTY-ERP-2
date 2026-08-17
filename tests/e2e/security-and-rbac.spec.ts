@@ -172,6 +172,27 @@ test.describe('production security and RBAC boundaries', () => {
     expect(await response.json()).toMatchObject({ok: false, error: 'المصنع غير مصرح'});
   });
 
+  test('unexpected database errors are masked and correlated', async ({page}) => {
+    const session=await login(page,'owner');
+    const response=await page.request.post('/api/admin/users',{
+      data:{
+        username:'owner',
+        fullNameAr:'اسم مكرر للاختبار',
+        password:'duplicate-user-password',
+        active:true,
+        roleCodes:['OWNER'],
+        plantId:session.user.plantId,
+      },
+    });
+    expect(response.status()).toBe(500);
+    expect(response.headers()['cache-control']).toBe('no-store');
+    const body=await response.json() as {ok:boolean;error:string;errorId:string};
+    expect(body).toMatchObject({ok:false,error:'INTERNAL_ERROR'});
+    expect(body.errorId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(response.headers()['x-error-id']).toBe(body.errorId);
+    expect(JSON.stringify(body)).not.toMatch(/Unique constraint|User_username_key|duplicate-user-password/);
+  });
+
   test('quality holds are plant-scoped and reject foreign references', async ({page}) => {
     await login(page, 'quality');
     const rejected = await page.request.post('/api/quality/holds', {

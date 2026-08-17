@@ -59,6 +59,7 @@ RESTORE_CONFIRM=YES DATABASE_URL='...restore-drill...' npm run db:restore -- /se
 - Backup storage مشفر وrestore test على Staging.
 - MFA للإدارة/المالية عند طبقة الهوية أو reverse proxy إلى أن يضاف Native MFA.
 - AI Assistant يظل Read-only.
+- اجمع سجلات `API_ERROR` مركزيًا واربط التنبيهات بقيمة `errorId` التي تظهر للمستخدم بدون تسجيل الرسائل الحساسة.
 
 ## 9. Pilot
 ابدأ بماكينة واحدة ووردية واحدة وصالح بين ERP والورقي: POY issue، Output A/B/Waste، Downtime، OEE، QC/FG Lot، Actual Cost/kg، Stock movement.

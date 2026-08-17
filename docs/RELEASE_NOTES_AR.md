@@ -27,6 +27,7 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Login plant authorization.
 - Atomic database-backed login rate limiting مشترك بين instances، مع hashed identifiers و`Retry-After`.
 - Password verification timing equalization للحسابات غير الموجودة.
+- كل أخطاء API غير المتوقعة تحجب تفاصيل database/upstream، وتعيد `errorId` مطابقًا لسجل آمن بدون رسائل أو أسرار.
 - Same-origin write protection + response security headers.
 - Race-safe guards في FG allocation/dispatch.
 - Optimistic concurrency في FG allocation وsupplier payments لمنع الحجز أو السداد المزدوج.
@@ -46,12 +47,13 @@ RBAC → Approvals → Alerts → Audit → n8n Outbox → Control Tower → Sup
 - Security scanner يفحص 45 write route ويؤكد authentication markers.
 
 ## QA الآلي
-- 135 TS/TSX files: semantic typecheck وNext production build ناجحان.
+- 136 TS/TSX files: semantic typecheck وNext production build ناجحان.
 - Prisma structure: 73 models / 26 enums / missing targets = 0 / duplicate fields = 0.
 - Business Rule assertions = 10 passed.
 - API routes = 69; pages = 36.
 - Factory seed = 6 machines / 1,414 spindles / Plant 2100.
-- PostgreSQL-backed Playwright = 28/28.
+- PostgreSQL-backed Playwright = 29/29.
+- API error-boundary assertions = 4/4.
 - Runtime environment = 4/4؛ weak/example secrets مرفوضة.
 - PostgreSQL 16 baseline migration وbackup/transactional restore drill ناجحة.
 - npm production audit = 0 vulnerabilities.

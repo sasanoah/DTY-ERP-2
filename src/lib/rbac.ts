@@ -1,3 +1,4 @@
+import {randomUUID} from 'node:crypto';
 import {prisma} from './prisma';
 import {getSession} from './session';
 import {ZodError} from 'zod';
@@ -18,8 +19,33 @@ export async function requirePermission(code:string){
   if(!allowed) throw Object.assign(new Error('FORBIDDEN'),{status:403});
   return s;
 }
+
+function errorStatus(error:unknown){
+  const status=(error as {status?:unknown})?.status;
+  return typeof status==='number'&&Number.isInteger(status)&&status>=400&&status<=599?status:500;
+}
+
+function safeErrorToken(value:unknown){
+  return typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value)?value:undefined;
+}
+
+function logServerError(error:unknown,status:number,errorId:string){
+  const candidate=error as {name?:unknown;code?:unknown};
+  console.error('API_ERROR',JSON.stringify({
+    errorId,
+    status,
+    name:safeErrorToken(candidate?.name)||'UnknownError',
+    code:safeErrorToken(candidate?.code),
+  }));
+}
+
 export function apiError(error:unknown){
-  if(error instanceof ZodError)return Response.json({ok:false,error:'VALIDATION_ERROR',issues:error.issues},{status:400});
-  const e=error as {message?:string;status?:number};
-  return Response.json({ok:false,error:e.message||'INTERNAL_ERROR'},{status:e.status||500});
+  const headers={'Cache-Control':'no-store'};
+  if(error instanceof ZodError)return Response.json({ok:false,error:'VALIDATION_ERROR',issues:error.issues},{status:400,headers});
+  const status=errorStatus(error);
+  const message=(error as {message?:unknown})?.message;
+  if(status<500)return Response.json({ok:false,error:typeof message==='string'&&message?message:'REQUEST_ERROR'},{status,headers});
+  const errorId=randomUUID();
+  logServerError(error,status,errorId);
+  return Response.json({ok:false,error:'INTERNAL_ERROR',errorId},{status,headers:{...headers,'X-Error-Id':errorId}});
 }

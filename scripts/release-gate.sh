@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 npm run validate
 npm run security:check
 npm run test:runtime-env
+npm run test:api-error
 npx prisma format
 npx prisma validate
 npm run typecheck

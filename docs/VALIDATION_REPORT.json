@@ -2,7 +2,7 @@
   "release": "1.0.0-rc.3",
   "generatedAt": "2026-08-17",
   "source": {
-    "typescriptTsxFiles": 135,
+    "typescriptTsxFiles": 136,
     "semanticTypecheckPassed": true,
     "nextProductionBuildPassed": true
   },
@@ -22,7 +22,8 @@
   "tests": {
     "businessRules": {"passed": 10, "total": 10},
     "runtimeEnvironment": {"passed": 4, "total": 4},
-    "postgresPlaywright": {"passed": 28, "total": 28}
+    "postgresPlaywright": {"passed": 29, "total": 29},
+    "apiErrorBoundary": {"passed": 4, "total": 4}
   },
   "securityCheck": {
     "passed": true,
@@ -36,6 +37,8 @@
       "secure-response-headers",
       "distributed-login-rate-limit",
       "login-timing-equalization",
+      "server-error-redaction",
+      "safe-error-correlation",
       "plant-selection-authorization",
       "live-user-session-authorization",
       "company-scoped-permission-resolution",

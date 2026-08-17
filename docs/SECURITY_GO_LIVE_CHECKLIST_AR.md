@@ -28,7 +28,8 @@
 - [ ] CSP نهائي بعد اختبار Next assets.
 - [ ] مراجعة RBAC لكل مستخدم وPlant.
 - [ ] n8n webhook secret + network restriction.
-- [ ] Secret/log redaction وmonitoring للـ5xx/DB/outbox failures.
+- [x] API 5xx redaction مع correlation ID وsafe structured log metadata.
+- [ ] Central monitoring/alerting للـ5xx/DB/outbox failures وربط `errorId` بمنصة الرصد.
 
 ## سلامة البيانات
 - [x] Lot traceability API integration test. يبقى UAT الميداني.

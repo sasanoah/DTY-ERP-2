@@ -43,6 +43,7 @@ jobs:
         run: npm run db:drill
       - run: npm run test:domain
       - run: npm run test:runtime-env
+      - run: npm run test:api-error
       - run: npm run test:structure
       - run: npm run security:check
       - run: npm run typecheck

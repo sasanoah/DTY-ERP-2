@@ -6,6 +6,7 @@
 - Authentication + Scrypt + signed HTTP-only sessions.
 - RBAC + Plant scope + Audit Log.
 - Same-origin write protection + secure headers + distributed database-backed login rate limiting.
+- Central API error redaction + safe correlation IDs لكل أخطاء 5xx.
 - Seed مصنع 2100: ست ماكينات وإجمالي 1,414 spindle.
 
 ## Full DTY Factory Scope

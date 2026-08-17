@@ -28,7 +28,7 @@
 - إضافة central session-version revocation فقط إذا تطلب التشغيل إبطال كل الجلسات قبل انتهاء صلاحيتها؛ تعطيل المستخدم أو تغيير أدواره يطبق فورًا حاليًا.
 - WAF/edge rate limit أمام database-backed login throttle الموجود، ومراقبة محاولات الدخول الفاشلة.
 - Security headers/CSP مناسب لـNext.
-- Secrets/log redaction.
+- Central log aggregation/alerting وربط safe `errorId` الموجود بمنصة الرصد.
 - SQL/Prisma concurrency tests للمخزون والحجز.
 
 ## Non-negotiable business rules

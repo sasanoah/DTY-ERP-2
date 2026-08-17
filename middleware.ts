@@ -10,8 +10,16 @@ function securityHeaders(res:NextResponse){
 }
 function sameOrigin(req:NextRequest){
   if(!['POST','PUT','PATCH','DELETE'].includes(req.method))return true;
-  const origin=req.headers.get('origin');if(!origin)return true;
-  try{return new URL(origin).host===req.nextUrl.host}catch{return false}
+  const originValue=req.headers.get('origin');
+  if(!originValue)return req.headers.get('sec-fetch-site')!=='cross-site';
+  try{
+    const origin=new URL(originValue);
+    const forwardedHost=req.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+    const requestHost=(forwardedHost||req.headers.get('host')||req.nextUrl.host).toLowerCase();
+    const forwardedProto=req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+    const requestProtocol=`${forwardedProto||req.nextUrl.protocol.replace(':','')}:`;
+    return origin.host.toLowerCase()===requestHost&&origin.protocol===requestProtocol;
+  }catch{return false}
 }
 export function middleware(req:NextRequest){
   const p=req.nextUrl.pathname;

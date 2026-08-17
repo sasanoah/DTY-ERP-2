@@ -14,6 +14,7 @@
     "validate": "node scripts/validate.mjs",
     "test:structure": "node scripts/validate.mjs",
     "test:domain": "tsx tests/business-rules.test.ts",
+    "test:e2e": "playwright test",
     "security:check": "node scripts/security-check.mjs",
     "test:prisma-structure": "node scripts/prisma-structure-check.mjs",
     "db:baseline": "sh scripts/create-baseline-migration.sh",
@@ -34,6 +35,7 @@
     "zod": "4.0.17"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@types/node": "22.15.30",
     "@types/qrcode": "1.5.5",
     "@types/react": "19.2.2",
